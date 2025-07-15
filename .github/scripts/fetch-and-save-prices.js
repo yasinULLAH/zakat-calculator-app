@@ -2,18 +2,12 @@
 const fs = require('fs');
 const path = require('path');
 
-// GitHub Actions provides input via environment variables
-const API_KEY = process.env.METALPRICE_API_KEY;
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN; // Automatically provided by GitHub Actions
-const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY; // e.g., 'your-username/your-repo-name'
-const GITHUB_REF = process.env.GITHUB_REF; // e.g., 'refs/heads/main' or 'refs/heads/master'
-const BRANCH_NAME = GITHUB_REF.split('/').pop(); // Extracts 'main' or 'master'
-
+const API_KEY = process.env.METALPRICE_API_KEY; // From GitHub Actions env
 const API_URL = `https://api.metalpriceapi.com/v1/latest?api_key=${API_KEY}&base=PKR&symbols=XAU,XAG`;
-const HISTORY_FILE_PATH = path.join(process.cwd(), 'prices-history.json'); // Current working directory is the repo root
+const HISTORY_FILE_PATH = path.join(process.cwd(), 'prices-history.json');
 
 async function fetchAndSaveDailyPrices() {
-    console.log(`--- Starting daily price fetch for branch: ${BRANCH_NAME} ---`);
+    console.log(`--- Starting daily price fetch ---`);
 
     if (!API_KEY) {
         console.error('METALPRICE_API_KEY is not set in GitHub Secrets!');
@@ -33,9 +27,6 @@ async function fetchAndSaveDailyPrices() {
             throw new Error('API response missing expected gold/silver data.');
         }
 
-        // Convert per ounce to per Tola (adjust if your target website uses different units)
-        // 1 Tola = 11.6638 grams
-        // 1 Troy Ounce = 31.1035 grams
         const gramsPerTola = 11.6638;
         const gramsPerOunce = 31.1035;
         const tolaFactor = gramsPerTola / gramsPerOunce;
@@ -67,36 +58,17 @@ async function fetchAndSaveDailyPrices() {
         if (lastEntryDate !== dailyPrice.date) {
             history.push(dailyPrice);
             fs.writeFileSync(HISTORY_FILE_PATH, JSON.stringify(history, null, 2), 'utf8');
-            console.log('Successfully updated prices-history.json.');
+            console.log('Successfully updated prices-history.json. This will be committed by the workflow.');
         } else {
-            console.log('Prices for today already recorded, no update needed.');
-            return; // Exit early if no change
+            console.log('Prices for today already recorded, no file update needed.');
         }
-
-        // 4. Commit changes back to the repository using Git commands
-        // This requires the workflow to checkout the repository with write permissions
-        // GitHub Actions automatically sets up Git for you.
-        console.log('Committing changes...');
-        const { execSync } = require('child_process');
-
-        execSync(`git config user.name "github-actions[bot]"`, { stdio: 'inherit' });
-        execSync(`git config user.email "github-actions[bot]@users.noreply.github.com"`, { stdio: 'inherit' });
-        execSync(`git add ${HISTORY_FILE_PATH}`, { stdio: 'inherit' });
-        execSync(`git commit -m "Automated: Update daily gold/silver prices for ${dailyPrice.date}"`, { stdio: 'inherit' });
-        execSync(`git push origin ${BRANCH_NAME}`, { stdio: 'inherit' });
-
-        console.log('Changes committed and pushed successfully!');
 
     } catch (error) {
         console.error('An error occurred during the daily price update:', error);
-        process.exit(1); // Exit with an error code to mark the workflow as failed
+        process.exit(1);
     }
 }
 
-// Node.js doesn't have native 'fetch' until Node 18+.
-// For GitHub Actions (often Node 16 or 18 by default), using a polyfill or direct import is safer.
-// We'll use a simple polyfill for fetch here to ensure compatibility.
-// If your workflow uses Node.js 18+ explicitly, you can remove this.
 if (typeof fetch === 'undefined') {
     global.fetch = require('node-fetch');
 }
