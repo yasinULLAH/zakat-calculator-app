@@ -1,0 +1,24 @@
+{
+  "name": "forex-pk-scraper",
+  "version": "1.0.0",
+  "description": "Scrapes daily gold and silver prices from forex.pk for GitHub Actions",
+  "main": ".github/scripts/fetch-and-save-prices.js",
+  "scripts": {
+    "start": "node .github/scripts/fetch-and-save-prices.js"
+  },
+  "keywords": [
+    "gold",
+    "silver",
+    "prices",
+    "pakistan",
+    "scraper",
+    "github-actions"
+  ],
+  "author": "Yasinullah",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.2",
+    "cheerio": "^1.0.0-rc.12"
+    // node-fetch is no longer strictly needed if only using axios, but harmless if present.
+  }
+}
