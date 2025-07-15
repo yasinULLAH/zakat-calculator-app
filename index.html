@@ -944,6 +944,9 @@
                         <span>رپورٹس</span></button>
                 </li>
                 <li>
+    <button id="tab-char" onclick="showTab('charities')"><i class="bi bi-building"></i> <span>عطیہ دہندگان</span></button>
+</li>
+                <li>
                     <button id="tab-info" onclick="showTab('info')"><i class="bi bi-info-circle-fill"></i>
                         <span>معلومات</span></button>
                 </li>
@@ -954,6 +957,13 @@
             </ul>
         </nav>
         <main id="main-content">
+                        <div id="charities" class="tab-content card">
+                <h2>توثیق شدہ عطیہ دہندگان</h2>
+                <p class="placeholder-text">یہاں کچھ معروف ادارے ہیں جو زکوٰۃ وصول کرتے ہیں۔ براہ کرم عطیہ دینے سے پہلے اپنی تحقیق خود کریں۔</p>
+                <div id="charity-list" class="dashboard-grid" style="margin-top: 1.5rem;">
+                    <!-- Charity cards will be inserted here by JavaScript -->
+                </div>
+            </div>
             <div id="fidya-kaffara" class="tab-content card">
                 <h2>فدیہ و کفارہ</h2>
                 <details>
@@ -1152,6 +1162,18 @@
                             </label>
                             <input type="text" id="payment-recipient" list="recipient-suggestions">
                             <datalist id="recipient-suggestions"></datalist>
+                                                    <div class="form-group">
+                            <label for="payment-impact-tag"><i class="bi bi-award-fill"></i> اثرات کا ٹیگ (اختیاری):</label>
+                            <select id="payment-impact-tag">
+                                <option value="none">منتخب کریں</option>
+                                <option value="خوراک/راشن">خوراک/راشن</option>
+                                <option value="تعلیم">تعلیم</option>
+                                <option value="صحت/علاج">صحت/علاج</option>
+                                <option value="یتیموں کی کفالت">یتیموں کی کفالت</option>
+                                <option value="قرض کی ادائیگی">قرض کی ادائیگی</option>
+                                <option value="عمومی مدد">عمومی مدد</option>
+                            </select>
+                        </div>
                         </div>
                         <div class="form-group full-width">
                             <label for="payment-category"><i class="bi bi-tags-fill"></i> کیٹیگری:
@@ -1455,6 +1477,12 @@
             currentCalculationResult: null,
             isEditingPayment: null
         };
+                const CHARITIES_DATA = [
+            { name: 'اخوت', description: 'بلا سود قرضوں کے ذریعے غربت کے خاتمے کے لیے کام کرنے والا ادارہ۔', website: 'https://akhawat.org.pk/' },
+            { name: 'ایدھی فاؤنڈیشن', description: 'پاکستان کا سب سے بڑا فلاحی ادارہ جو وسیع پیمانے پر سماجی خدمات فراہم کرتا ہے۔', website: 'https://edhi.org/' },
+            { name: 'سیلانی ویلفیئر', description: 'مستحق افراد کو کھانا کھلانے، تعلیم اور صحت کی سہولیات فراہم کرنے میں سرگرم۔', website: 'https://www.saylaniwelfare.com/' },
+            { name: 'شوکت خانم ہسپتال', description: 'کینسر کے مریضوں کا مفت علاج کرنے والا معروف ہسپتال۔', website: 'https://shaukatkhanum.org.pk/' }
+        ];
         function openDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -1548,6 +1576,22 @@
             }
             updatePriceInfoInCalculator()
         }
+                function renderCharities() {
+            const list = document.getElementById('charity-list');
+            if (CHARITIES_DATA.length === 0) {
+                list.innerHTML = `<p class="placeholder-text">کوئی ادارہ شامل نہیں کیا گیا۔</p>`;
+                return;
+            }
+            list.innerHTML = CHARITIES_DATA.map(charity => `
+                <div class="summary-card">
+                    <div class="summary-content">
+                        <h3 style="margin-bottom: 0.5rem; font-size: 1.4em;">${charity.name}</h3>
+                        <p>${charity.description}</p>
+                        <a href="${charity.website}" target="_blank" rel="noopener noreferrer" class="button-like-label" style="margin-top: 1rem; text-decoration: none;">ویب سائٹ دیکھیں <i class="bi bi-box-arrow-up-right"></i></a>
+                    </div>
+                </div>
+            `).join('');
+        }
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
@@ -1555,6 +1599,7 @@
             document.getElementById(`tab-${tabId.substring(0, 4)}`)?.classList.add('active');
             const handler = {
                 dashboard: renderDashboard,
+                charities: renderCharities,
                 history: renderCalculationHistory,
                 payments: async () => {
                     await populatePaymentYearSelect();
@@ -1922,6 +1967,7 @@
             document.getElementById('payment-date').value = payment.date;
             document.getElementById('payment-recipient').value = payment.recipient;
             document.getElementById('payment-category').value = payment.category;
+            document.getElementById('payment-impact-tag').value = payment.impactTag || 'none';
             document.getElementById('payment-notes').value = payment.notes;
             const submitBtn = document.querySelector('#payment-form button[type="submit"]');
             submitBtn.innerHTML = '<i class="bi bi-check-lg"></i> اپڈیٹ کریں';
@@ -2006,7 +2052,21 @@
                 const payments = await dbRequest(getStore(STORES.payments, 'readonly').index('year_idx').getAll(IDBKeyRange.only(Number(year))));
                 const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
                 const remaining = calc.isZakatDue ? Math.max(0, calc.zakatAmount - totalPaid) : 0;
-                area.innerHTML = `<h2>سال ${year} کی زکوٰۃ رپورٹ</h2><div class="card"><h3>خلاصہ</h3><table><tbody><tr><td>واجب الادا زکوٰۃ</td><td>${formatCurrency(calc.zakatAmount)}</td></tr><tr><td>ادا شدہ زکوٰۃ</td><td>${formatCurrency(totalPaid)}</td></tr><tr><td>بقیہ زکوٰۃ</td><td style="color:${remaining > 0 ? 'var(--error-color)' : 'var(--success-color)'}; font-weight: bold;">${formatCurrency(remaining)}</td></tr></tbody></table></div><div class="card" style="margin-top:1rem"><h3>ادائیگیوں کی تفصیل</h3>${payments.length > 0 ? `<table><thead><th>تاریخ</th><th>رقم</th><th>وصول کنندہ</th><th>کیٹیگری</th></thead><tbody>${payments.map(p => `<tr><td>${new Date(p.date).toLocaleDateString('ur-PK')}</td><td>${formatCurrency(p.amount)}</td><td>${p.recipient || '-'}</td><td>${p.category || '-'}</td></tr>`).join('')}</tbody></table>` : `<p class="placeholder-text">اس سال کوئی ادائیگی نہیں کی گئی۔</p>`}</div>`;
+
+                const impactCounts = payments.reduce((acc, p) => {
+                    if (p.impactTag && p.impactTag !== 'none') {
+                        acc[p.impactTag] = (acc[p.impactTag] || 0) + 1;
+                    }
+                    return acc;
+                }, {});
+
+                let impactSummaryHtml = '';
+                if (Object.keys(impactCounts).length > 0) {
+                    const impactItems = Object.entries(impactCounts).map(([tag, count]) => `<li><strong>${tag}:</strong> ${count} مرتبہ</li>`).join('');
+                    impactSummaryHtml = `<div class="card" style="margin-top:1rem"><h3>اثرات کا خلاصہ</h3><p>اس سال آپ کی ادائیگیوں نے مندرجہ ذیل شعبوں میں مدد فراہم کی:</p><ul>${impactItems}</ul></div>`;
+                }
+
+                area.innerHTML = `<h2>سال ${year} کی زکوٰۃ رپورٹ</h2><div class="card"><h3>خلاصہ</h3><table><tbody><tr><td>واجب الادا زکوٰۃ</td><td>${formatCurrency(calc.zakatAmount)}</td></tr><tr><td>ادا شدہ زکوٰۃ</td><td>${formatCurrency(totalPaid)}</td></tr><tr><td>بقیہ زکوٰۃ</td><td style="color:${remaining > 0 ? 'var(--error-color)' : 'var(--success-color)'}; font-weight: bold;">${formatCurrency(remaining)}</td></tr></tbody></table></div><div class="card" style="margin-top:1rem"><h3>ادائیگیوں کی تفصیل</h3>${payments.length > 0 ? `<table><thead><th>تاریخ</th><th>رقم</th><th>وصول کنندہ</th><th>کیٹیگری</th></thead><tbody>${payments.map(p => `<tr><td>${new Date(p.date).toLocaleDateString('ur-PK')}</td><td>${formatCurrency(p.amount)}</td><td>${p.recipient || '-'}</td><td>${p.category || '-'}</td></tr>`).join('')}</tbody></table>` : `<p class="placeholder-text">اس سال کوئی ادائیگی نہیں کی گئی۔</p>`}</div>${impactSummaryHtml}`;
                 area.style.display = 'block'
             }
             const calcs = await dbRequest(getStore(STORES.calculations, 'readonly').getAll());
@@ -2287,7 +2347,8 @@
                     date: document.getElementById('payment-date').value,
                     recipient: document.getElementById('payment-recipient').value.trim(),
                     category: document.getElementById('payment-category').value.trim(),
-                    notes: document.getElementById('payment-notes').value.trim()
+                    notes: document.getElementById('payment-notes').value.trim(),
+                    impactTag: document.getElementById('payment-impact-tag').value
                 };
                 if (appState.isEditingPayment) paymentData.id = appState.isEditingPayment;
                 if (!paymentData.year || !paymentData.amount || !paymentData.date) {
@@ -2303,6 +2364,7 @@
                 populateRecipientSuggestions();
                 populatePaymentYearSelect()
             });
+            
             document.getElementById('clear-data-btn').addEventListener('click', () => {
                 showConfirmation('تمام ڈیٹا حذف کریں؟', 'یہ عمل واپس نہیں لیا جا سکتا! تمام حسابات، ادائیگیاں، اور سیٹنگز حذف ہو جائیں گی۔', async () => {
                     await db.close();
