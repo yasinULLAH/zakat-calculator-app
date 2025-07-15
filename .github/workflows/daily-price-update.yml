@@ -4,11 +4,15 @@ name: Daily Gold/Silver Price Update
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *' # Example: Run daily at midnight UTC
+    - cron: '0 0 * * *'
 
 jobs:
   update-prices:
     runs-on: ubuntu-latest
+    # --- ADD THIS BLOCK HERE ---
+    permissions:
+      contents: write # This is the crucial permission for pushing changes
+    # ---------------------------
 
     steps:
       - name: Checkout repository
@@ -25,24 +29,18 @@ jobs:
         run: npm install node-fetch
 
       - name: Run price update script
-        # Ensure this 'env:' block is directly under the 'name: Run price update script'
-        # and has the correct indentation (2 spaces from 'name:')
+        id: run_script
         env:
-          METALPRICE_API_KEY: ${{ secrets.METALPRICE_API_KEY }} # THIS LINE IS CRUCIAL
+          METALPRICE_API_KEY: ${{ secrets.METALPRICE_API_KEY }}
         run: node ./.github/scripts/fetch-and-save-prices.js
 
-      - name: Check for changes and push
-        id: commit_push
+      - name: Commit and Push if prices updated
+        if: steps.run_script.outputs.prices_updated == 'true'
         run: |
-          git diff --exit-code prices-history.json || (
-            echo "Changes detected, committing and pushing..."
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add prices-history.json
-            git commit -m "Automated: Update daily gold/silver prices for $(date +%Y-%m-%d)"
-            git push
-            echo "::set-output name=pushed::true"
-          ) || (
-            echo "No changes to commit."
-            echo "::set-output name=pushed::false"
-          )
+          echo "Changes detected, committing and pushing..."
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add prices-history.json
+          git commit -m "Automated: Update daily gold/silver prices for $(date +%Y-%m-%d)"
+          git push
+          echo "Successfully pushed changes."
