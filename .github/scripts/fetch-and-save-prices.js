@@ -19,9 +19,8 @@ async function fetchAndSaveDailyPrices() {
         });
         const html = response.data;
         console.log('HTML fetched successfully. Parsing with Cheerio...');
-        // Uncomment below to see partial HTML in logs if debugging is hard
-        // console.log('--- HTML Content Snippet (first 1000 chars) ---');
-        // console.log(html.substring(0, 1000));
+        // console.log('--- HTML Content Snippet (first 2000 chars) ---'); // Uncomment for debugging raw HTML
+        // console.log(html.substring(0, 2000));
         // console.log('------------------------------------');
 
         const $ = cheerio.load(html);
@@ -29,13 +28,30 @@ async function fetchAndSaveDailyPrices() {
         let goldPrice = null;
         let silverPrice = null;
 
-        // --- MOST CRITICAL CHANGE: Find the specific table for Bullion Rates ---
-        // Look for the h3 that says "Gold Rates in Pakistan"
-        // Then get the next sibling table after that h3.
-        const bullionTable = $('h3:contains("Gold Rates in Pakistan")').next('table');
+        // --- NEW STRATEGY FOR FINDING THE TABLE ---
+        // Option 1: Find a table based on a distinct header cell (th) within it
+        // This looks for a table that contains a <th> with "Currency" or "Gold" in it.
+        let bullionTable = null;
+        $('table').each((i, tableElem) => {
+            const $table = $(tableElem);
+            // Check if table contains a header with "Buying" or "Selling" and "Gold" in one of its rows/cells.
+            // This is a common pattern for price tables.
+            if ($table.text().includes('Buying') && $table.text().includes('Gold') && $table.text().includes('Tola')) {
+                bullionTable = $table;
+                console.log(`Found potential bullion table at index ${i} based on content.`);
+                return false; // Break the .each loop
+            }
+        });
+
+        // If Option 1 failed, fallback to assuming it's the first table again,
+        // but this is less robust than content-based detection.
+        if (bullionTable === null) {
+            console.warn('Could not find table by content, trying the first table on the page as a fallback.');
+            bullionTable = $('table').first();
+        }
 
         if (bullionTable.length === 0) {
-            throw new Error('Could not find the "Gold Rates in Pakistan" table. Website structure might have changed.');
+            throw new Error('Failed to find bullion rates table even with fallback. Website structure might have severely changed.');
         }
 
         console.log('Found bullion table. Iterating through rows...');
@@ -43,8 +59,8 @@ async function fetchAndSaveDailyPrices() {
             const columns = $(row).find('td');
             // Ensure there are enough columns for item name and buying rate
             if (columns.length >= 3) {
-                const itemName = columns.eq(0).text().trim(); // First column (index 0)
-                const buyingRateText = columns.eq(2).text().trim(); // Third column (index 2) - Buying Rate
+                const itemName = columns.eq(0).text().trim(); // First column: Item name
+                const buyingRateText = columns.eq(2).text().trim(); // Third column (index 2): Buying Rate
 
                 // Log raw extracted text for debugging
                 console.log(`Row ${i}: Item Name: '${itemName}', Buying Rate Raw: '${buyingRateText}'`);
@@ -65,7 +81,6 @@ async function fetchAndSaveDailyPrices() {
         // Helper function to clean and parse price strings
         function parsePrice(priceString) {
             // Remove commas and any non-digit/non-dot characters.
-            // Example: "Rs. 230,500" -> "230500"
             let cleanedPrice = priceString.replace(/,/g, '').replace(/[^\d.]/g, '');
             if (cleanedPrice === '') {
                 console.warn(`Attempted to parse empty string for price.`);
@@ -76,10 +91,10 @@ async function fetchAndSaveDailyPrices() {
 
         // --- Final Validation after scraping ---
         if (goldPrice === null || isNaN(goldPrice) || goldPrice <= 0) {
-            throw new Error(`Failed to scrape valid Gold price. Value: ${goldPrice}. Ensure '24K Gold 1 Tola' is found and its buying price is in the 3rd column.`);
+            throw new Error(`Failed to scrape valid Gold price. Value: ${goldPrice}. Verify 'Gold 24K 1 Tola' row and its 3rd column.`);
         }
         if (silverPrice === null || isNaN(silverPrice) || silverPrice <= 0) {
-            throw new Error(`Failed to scrape valid Silver price. Value: ${silverPrice}. Ensure 'Silver 1 Tola' is found and its buying price is in the 3rd column.`);
+            throw new Error(`Failed to scrape valid Silver price. Value: ${silverPrice}. Verify 'Silver 1 Tola' row and its 3rd column.`);
         }
         // --- End Validation ---
 
