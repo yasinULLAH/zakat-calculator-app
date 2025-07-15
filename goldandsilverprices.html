@@ -5,46 +5,62 @@
 <p>Last Updated: <span id="lastUpdated">N/A</span></p>
 
 <script>
-    const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbyjHuirHK5fFC58fechSXGIFkjT_Z8rkQlce_QkYF7XnWFO9vdN4g9VUo0-DispTolIhg/exec'; // PASTE THE URL FROM STEP 2.5 HERE!
+    const HISTORY_FILE_URL = 'prices-history.json'; // Path to your history file in the same repo
 
-    async function fetchPrices() {
+    async function fetchAndDisplayPrices() {
         const goldPriceElement = document.getElementById('goldPrice');
         const silverPriceElement = document.getElementById('silverPrice');
         const lastUpdatedElement = document.getElementById('lastUpdated');
+        const refreshButton = document.getElementById('refreshPrices'); // Now acts as "re-load from file"
 
         goldPriceElement.textContent = 'Fetching...';
         silverPriceElement.textContent = 'Fetching...';
         lastUpdatedElement.textContent = 'Updating...';
+        refreshButton.disabled = true;
 
         try {
-            const response = await fetch(appsScriptUrl);
+            const response = await fetch(HISTORY_FILE_URL);
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`Failed to load history file! Status: ${response.status}`);
             }
-            const data = await response.json();
+            const history = await response.json();
 
-            if (data.gold && data.silver) {
-                goldPriceElement.textContent = `PKR ${data.gold.toLocaleString('en-PK')}`;
-                silverPriceElement.textContent = `PKR ${data.silver.toLocaleString('en-PK')}`;
-                lastUpdatedElement.textContent = data.timestamp;
-                console.log('Prices fetched:', data);
+            if (history && history.length > 0) {
+                const latestPrice = history[history.length - 1]; // Get the last (latest) entry
+
+                goldPriceElement.textContent = `PKR ${latestPrice.gold.toLocaleString('en-PK')}`;
+                silverPriceElement.textContent = `PKR ${latestPrice.silver.toLocaleString('en-PK')}`;
+                lastUpdatedElement.textContent = latestPrice.timestamp;
+                console.log('Prices loaded from history file:', latestPrice);
+
+                // Optional: Display full history in a table or list
+                // You'd add elements like <ul id="priceHistoryList"></ul>
+                // const historyList = document.getElementById('priceHistoryList');
+                // if (historyList) {
+                //    historyList.innerHTML = ''; // Clear previous entries
+                //    history.forEach(entry => {
+                //        const li = document.createElement('li');
+                //        li.textContent = `${entry.date}: Gold ${entry.gold} ${entry.unit}, Silver ${entry.silver} ${entry.unit}`;
+                //        historyList.appendChild(li);
+                //    });
+                // }
+
             } else {
-                goldPriceElement.textContent = 'Error: Data missing';
-                silverPriceElement.textContent = 'Error: Data missing';
-                lastUpdatedElement.textContent = 'Error';
-                console.error('Data not in expected format:', data);
+                goldPriceElement.textContent = 'No data available.';
+                silverPriceElement.textContent = 'No data available.';
+                lastUpdatedElement.textContent = 'N/A';
+                console.warn('History file is empty or malformed.');
             }
         } catch (error) {
-            goldPriceElement.textContent = 'Failed to load';
-            silverPriceElement.textContent = 'Failed to load';
-            lastUpdatedElement.textContent = 'Failed';
-            console.error('Error fetching prices:', error);
+            goldPriceElement.textContent = 'Error loading prices';
+            silverPriceElement.textContent = 'Error loading prices';
+            lastUpdatedElement.textContent = 'Error';
+            console.error('Error fetching history:', error);
+        } finally {
+            refreshButton.disabled = false; // Re-enable button
         }
     }
 
-    // Fetch prices when the page loads
-    document.addEventListener('DOMContentLoaded', fetchPrices);
-
-    // Add event listener for the refresh button
-    document.getElementById('refreshPrices').addEventListener('click', fetchPrices);
+    document.addEventListener('DOMContentLoaded', fetchAndDisplayPrices);
+    document.getElementById('refreshPrices').addEventListener('click', fetchAndDisplayPrices);
 </script>
