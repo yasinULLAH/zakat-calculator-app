@@ -1056,6 +1056,10 @@
                             <h3 id="summary-due-amount">کوئی حساب نہیں</h3>
                         </div>
                     </div>
+                                    <h3 class="section-header">آپ کے سنگ میل (Your Milestones)</h3>
+                <div id="milestones-container" class="dashboard-grid">
+                    <p class="placeholder-text full-width">حساب کتاب اور ادائیگیاں شامل کریں تاکہ آپ اپنے سنگ میل دیکھ سکیں۔</p>
+                </div>
                     <div class="summary-card" id="summary-paid-card">
                         <div class="summary-icon" style="background-color:#28a745"><i
                                 class="bi bi-check-circle-fill"></i></div>
@@ -1713,6 +1717,94 @@
             const num = Number(value) || 0;
             return `${num.toLocaleString('en-US', { maximumFractionDigits: 2 })} ${appState.settings.currencySymbol || 'PKR'}`
         }
+                function calculateConsecutiveYears(years) {
+            if (years.length < 2) return years.length;
+            const sortedYears = [...new Set(years)].sort((a, b) => a - b);
+            let maxStreak = 0;
+            let currentStreak = 0;
+            if (sortedYears.length > 0) {
+                maxStreak = 1;
+                currentStreak = 1;
+            }
+            for (let i = 1; i < sortedYears.length; i++) {
+                if (sortedYears[i] === sortedYears[i - 1] + 1) {
+                    currentStreak++;
+                } else {
+                    currentStreak = 1;
+                }
+                if (currentStreak > maxStreak) {
+                    maxStreak = currentStreak;
+                }
+            }
+            return maxStreak;
+        }
+
+        async function renderMilestones() {
+            const container = document.getElementById('milestones-container');
+            container.innerHTML = '';
+            const [calculations, payments] = await Promise.all([
+                dbRequest(getStore(STORES.calculations, 'readonly').getAll()),
+                dbRequest(getStore(STORES.payments, 'readonly').getAll())
+            ]);
+
+            const stats = {
+                consecutiveYears: calculateConsecutiveYears(calculations.map(c => c.year)),
+                totalPayments: payments.length,
+                totalPaid: payments.reduce((sum, p) => sum + p.amount, 0),
+                uniqueRecipients: new Set(payments.map(p => p.recipient).filter(Boolean)).size
+            };
+
+            const milestones = [
+                {
+                    condition: stats.consecutiveYears > 1,
+                    icon: 'bi-calendar-check-fill',
+                    color: '#006400',
+                    title: 'مسلسل سال',
+                    value: `${stats.consecutiveYears} سال`
+                },
+                {
+                    condition: stats.totalPayments >= 10,
+                    icon: 'bi-receipt-cutoff',
+                    color: '#17a2b8',
+                    title: 'کل ادائیگیاں',
+                    value: `${stats.totalPayments} ادائیگیاں`
+                },
+                {
+                    condition: stats.totalPaid > 0,
+                    icon: 'bi-piggy-bank-fill',
+                    color: '#28a745',
+                    title: 'کل ادا شدہ رقم',
+                    value: formatCurrency(stats.totalPaid)
+                },
+                {
+                    condition: stats.uniqueRecipients >= 5,
+                    icon: 'bi-people-fill',
+                    color: '#ffc107',
+                    title: 'منفرد وصول کنندگان',
+                    value: `${stats.uniqueRecipients} لوگ/ادارے`
+                }
+            ];
+
+            let milestonesHtml = '';
+            milestones.forEach(m => {
+                if (m.condition) {
+                    milestonesHtml += `
+                        <div class="summary-card">
+                            <div class="summary-icon" style="background-color:${m.color}"><i class="${m.icon}"></i></div>
+                            <div class="summary-content">
+                                <p>${m.title}</p>
+                                <h3>${m.value}</h3>
+                            </div>
+                        </div>`;
+                }
+            });
+
+            if (milestonesHtml) {
+                container.innerHTML = milestonesHtml;
+            } else {
+                container.innerHTML = `<p class="placeholder-text full-width">حساب کتاب اور ادائیگیاں شامل کریں تاکہ آپ اپنے سنگ میل دیکھ سکیں۔</p>`;
+            }
+        }
         function calculateZakat(data, prices, settings) {
             const {
                 gold,
@@ -1839,7 +1931,8 @@
             dueEl.textContent = formatCurrency(latestCalc.zakatAmount);
             paidEl.textContent = formatCurrency(totalPaid);
             remainingEl.textContent = formatCurrency(remaining);
-            renderPaymentCategoryChart(payments)
+            renderPaymentCategoryChart(payments);
+            await renderMilestones();
         }
         function renderPaymentCategoryChart(payments) {
             const canvas = document.getElementById('payment-category-chart');
