@@ -2,41 +2,38 @@
 name: Daily Gold/Silver Price Update
 
 on:
-  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+  workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *' # Run daily at midnight UTC (adjust if needed for PKT)
-                        # For PKT (UTC+5), 0 0 * * * UTC is 5:00 AM PKT
-                        # If you want 00:00 (midnight) PKT, you'd need '0 19 * * *' UTC (Previous day)
-                        # Cron syntax: minute (0-59) hour (0-23) day_of_month (1-31) month (1-12) day_of_week (0-6)
-                        # See: https://crontab.guru/
+    - cron: '0 0 * * *' # Example: Run daily at midnight UTC
 
 jobs:
   update-prices:
-    runs-on: ubuntu-latest # Or another runner image
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }} # This token has write permissions for the repo
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Use a recent stable Node.js version
+          node-version: '20'
 
-      - name: Install dependencies (for node-fetch if using older node)
-        run: npm install node-fetch # Required if using Node.js < 18 or if you prefer explicit dependency
+      - name: Install dependencies (for node-fetch)
+        run: npm install node-fetch
 
       - name: Run price update script
+        # Ensure this 'env:' block is directly under the 'name: Run price update script'
+        # and has the correct indentation (2 spaces from 'name:')
         env:
-          METALPRICE_API_KEY: ${{ secrets.METALPRICE_API_KEY }} # Inject API key from secrets
+          METALPRICE_API_KEY: ${{ secrets.METALPRICE_API_KEY }} # THIS LINE IS CRUCIAL
         run: node ./.github/scripts/fetch-and-save-prices.js
 
       - name: Check for changes and push
         id: commit_push
         run: |
-          # Check if there are any changes to commit (e.g., if price updated)
           git diff --exit-code prices-history.json || (
             echo "Changes detected, committing and pushing..."
             git config user.name "github-actions[bot]"
@@ -49,7 +46,3 @@ jobs:
             echo "No changes to commit."
             echo "::set-output name=pushed::false"
           )
-        # This step replaces the commit/push logic directly in the JS, making the JS cleaner
-        # and leveraging the action's built-in git capabilities.
-        # The JS script should only *write* to the file, and this step should handle the git.
-        # Let's update the JS script accordingly.
