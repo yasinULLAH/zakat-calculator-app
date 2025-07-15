@@ -2240,7 +2240,7 @@
                     showTab('settings');
                     return
                 }
-                document.getElementById('fetch-prices-btn').addEventListener('click', fetchLivePrices);
+
                 const data = {
                     year: parseInt(document.getElementById('year').value),
                     goldKarat: parseInt(document.getElementById('gold-karat').value),
@@ -2321,6 +2321,7 @@
                     document.getElementById('info').dir = lang === 'en' ? 'ltr' : 'rtl'
                 })
             });
+            document.getElementById('fetch-prices-btn').addEventListener('click', fetchLivePrices);
             const updateRealTimeValue = (inputId, displayId, price, isGold = false) => {
                 const input = document.getElementById(inputId);
                 const display = document.getElementById(displayId);
