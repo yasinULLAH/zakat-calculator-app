@@ -2507,6 +2507,9 @@
         document.addEventListener('DOMContentLoaded', async () => {
             try {
                 await openDB();
+                window.db = db;
+                window.STORES = STORES;
+                window.dbRequest = dbRequest;
                 await loadSettings();
                 /* Load initial data  for actual prices for gold and silver
                 await fetchLivePrices();
