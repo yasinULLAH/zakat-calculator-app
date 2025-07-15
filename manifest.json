@@ -1,11 +1,11 @@
 {
   "name": "Zakat Manager",
   "short_name": "Zakat",
-  "start_url": ".",
+  "scope": "/zakat-calculator-app/",
+  "start_url": "/zakat-calculator-app/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#006400",
-  "description": "A comprehensive Zakat management application.",
   "icons": [
     {
       "src": "icons/icon-192x192.png",
