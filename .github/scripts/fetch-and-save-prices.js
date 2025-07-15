@@ -19,7 +19,8 @@ async function fetchAndSaveDailyPrices() {
         });
         const html = response.data;
         console.log('HTML fetched successfully. Parsing with Cheerio...');
-        // console.log('--- HTML Content Snippet (first 2000 chars) ---'); // Uncomment for debugging raw HTML
+        // Uncomment to see partial HTML in logs for debugging, but keep it commented for normal runs
+        // console.log('--- HTML Content Snippet (first 2000 chars) ---');
         // console.log(html.substring(0, 2000));
         // console.log('------------------------------------');
 
@@ -28,52 +29,35 @@ async function fetchAndSaveDailyPrices() {
         let goldPrice = null;
         let silverPrice = null;
 
-        // --- NEW STRATEGY FOR FINDING THE TABLE ---
-        // Option 1: Find a table based on a distinct header cell (th) within it
-        // This looks for a table that contains a <th> with "Currency" or "Gold" in it.
-        let bullionTable = null;
-        $('table').each((i, tableElem) => {
-            const $table = $(tableElem);
-            // Check if table contains a header with "Buying" or "Selling" and "Gold" in one of its rows/cells.
-            // This is a common pattern for price tables.
-            if ($table.text().includes('Buying') && $table.text().includes('Gold') && $table.text().includes('Tola')) {
-                bullionTable = $table;
-                console.log(`Found potential bullion table at index ${i} based on content.`);
-                return false; // Break the .each loop
-            }
-        });
-
-        // If Option 1 failed, fallback to assuming it's the first table again,
-        // but this is less robust than content-based detection.
-        if (bullionTable === null) {
-            console.warn('Could not find table by content, trying the first table on the page as a fallback.');
-            bullionTable = $('table').first();
-        }
+        // --- THE MOST CRITICAL CHANGE: Target the correct table precisely ---
+        // Find the <h2> tag with the specific text "Bullion / Gold Price Today"
+        // Then get its next sibling, which should be the correct table.
+        const bullionTable = $('h2:contains("Bullion / Gold Price Today")').next('table');
 
         if (bullionTable.length === 0) {
-            throw new Error('Failed to find bullion rates table even with fallback. Website structure might have severely changed.');
+            throw new Error('Could not find the "Bullion / Gold Price Today" table. Website structure might have changed.');
         }
 
         console.log('Found bullion table. Iterating through rows...');
         bullionTable.find('tr').each((i, row) => {
             const columns = $(row).find('td');
-            // Ensure there are enough columns for item name and buying rate
-            if (columns.length >= 3) {
-                const itemName = columns.eq(0).text().trim(); // First column: Item name
-                const buyingRateText = columns.eq(2).text().trim(); // Third column (index 2): Buying Rate
+            // Ensure there are at least 4 columns (Metal, Symbol, 10 Gm, 1 Tola)
+            if (columns.length >= 4) { // Increased to 4 because we're looking at 1 Tola (4th column in header row if 1-indexed)
+                const metalName = columns.eq(0).text().trim(); // e.g., "Gold", "Silver"
+                const tolaPriceText = columns.eq(3).text().trim(); // This is the "PKR for 1 Tola" column (index 3)
 
                 // Log raw extracted text for debugging
-                console.log(`Row ${i}: Item Name: '${itemName}', Buying Rate Raw: '${buyingRateText}'`);
+                console.log(`Row ${i}: Metal Name: '${metalName}', 1 Tola Price Raw: '${tolaPriceText}' (from col 3)`);
 
-                // Identify Gold (24K, 1 Tola)
-                if (itemName.toLowerCase().includes('gold') && itemName.toLowerCase().includes('24k') && itemName.toLowerCase().includes('1 tola')) {
-                    goldPrice = parsePrice(buyingRateText);
-                    console.log(`-> Identified Gold 24K 1 Tola. Parsed Price: ${goldPrice}`);
+                // Identify Gold
+                if (metalName.toLowerCase() === 'gold') {
+                    goldPrice = parsePrice(tolaPriceText);
+                    console.log(`-> Identified Gold. Parsed Price: ${goldPrice}`);
                 }
-                // Identify Silver (1 Tola)
-                else if (itemName.toLowerCase().includes('silver') && itemName.toLowerCase().includes('1 tola')) {
-                    silverPrice = parsePrice(buyingRateText);
-                    console.log(`-> Identified Silver 1 Tola. Parsed Price: ${silverPrice}`);
+                // Identify Silver
+                else if (metalName.toLowerCase() === 'silver') {
+                    silverPrice = parsePrice(tolaPriceText);
+                    console.log(`-> Identified Silver. Parsed Price: ${silverPrice}`);
                 }
             }
         });
@@ -91,10 +75,10 @@ async function fetchAndSaveDailyPrices() {
 
         // --- Final Validation after scraping ---
         if (goldPrice === null || isNaN(goldPrice) || goldPrice <= 0) {
-            throw new Error(`Failed to scrape valid Gold price. Value: ${goldPrice}. Verify 'Gold 24K 1 Tola' row and its 3rd column.`);
+            throw new Error(`Failed to scrape valid Gold price. Value: ${goldPrice}. Ensure 'Gold' row is found and its 1 Tola price is valid.`);
         }
         if (silverPrice === null || isNaN(silverPrice) || silverPrice <= 0) {
-            throw new Error(`Failed to scrape valid Silver price. Value: ${silverPrice}. Verify 'Silver 1 Tola' row and its 3rd column.`);
+            throw new Error(`Failed to scrape valid Silver price. Value: ${silverPrice}. Ensure 'Silver' row is found and its 1 Tola price is valid.`);
         }
         // --- End Validation ---
 
@@ -102,7 +86,7 @@ async function fetchAndSaveDailyPrices() {
             date: new Date().toISOString().slice(0, 10), // YYYY-MM-DD
             gold: goldPrice,
             silver: silverPrice,
-            unit: "PKR per Tola",
+            unit: "PKR per Tola", // Confirmed from the table's header
             timestamp: new Date().toLocaleString("en-PK", { timeZone: "Asia/Karachi" })
         };
 
