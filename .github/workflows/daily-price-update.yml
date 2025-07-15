@@ -2,17 +2,15 @@
 name: Daily Gold/Silver Price Update
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 0 * * *' # Run daily at midnight UTC (adjust as needed for PKT)
 
 jobs:
   update-prices:
     runs-on: ubuntu-latest
-    # --- ADD THIS BLOCK HERE ---
     permissions:
-      contents: write # This is the crucial permission for pushing changes
-    # ---------------------------
+      contents: write # Crucial for pushing changes
 
     steps:
       - name: Checkout repository
@@ -23,15 +21,14 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20' # Recommended stable version
 
-      - name: Install dependencies (for node-fetch)
-        run: npm install node-fetch
+      - name: Install Node.js dependencies # This will read package.json and install axios/cheerio
+        run: npm install
 
       - name: Run price update script
         id: run_script
-        env:
-          METALPRICE_API_KEY: ${{ secrets.METALPRICE_API_KEY }}
+        # No METALPRICE_API_KEY env needed for scraping
         run: node ./.github/scripts/fetch-and-save-prices.js
 
       - name: Commit and Push if prices updated
