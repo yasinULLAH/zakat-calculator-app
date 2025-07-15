@@ -30,9 +30,9 @@ async function fetchAndSaveDailyPrices() {
         let silverPrice = null;
 
         // --- THE MOST CRITICAL CHANGE: Target the correct table precisely ---
-        // Find the <h2> tag with the specific text "Bullion / Gold Price Today"
-        // Then get its next sibling, which should be the correct table.
-        const bullionTable = $('h2:contains("Bullion / Gold Price Today")').next('table');
+        // Find the <h2> tag, then find the FIRST table that comes after it. This is more resilient.
+        // --- FIX APPLIED HERE ---
+        const bullionTable = $('h2:contains("Bullion / Gold Price Today")').nextAll('table').first();
 
         if (bullionTable.length === 0) {
             throw new Error('Could not find the "Bullion / Gold Price Today" table. Website structure might have changed.');
