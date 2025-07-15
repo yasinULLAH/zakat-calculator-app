@@ -963,7 +963,6 @@
                 <p class="placeholder-text">یہاں کچھ معروف ادارے ہیں جو زکوٰۃ وصول کرتے ہیں۔ براہ کرم عطیہ دینے سے پہلے
                     اپنی تحقیق خود کریں۔</p>
                 <div id="charity-list" class="dashboard-grid" style="margin-top: 1.5rem;">
-                    <!-- Charity cards will be inserted here by JavaScript -->
                 </div>
             </div>
             <div id="fidya-kaffara" class="tab-content card">
@@ -1074,7 +1073,6 @@
                             <h3 id="summary-remaining-amount">کوئی حساب نہیں</h3>
                         </div>
                     </div>
-
                 </div>
                 <h3 class="section-header">آپ کے سنگ میل (Your Milestones)</h3>
                 <div id="milestones-container" class="dashboard-grid">
@@ -1481,6 +1479,7 @@
                 silverPrice: 0,
                 currencySymbol: 'PKR',
                 zakatAnniversary: null,
+                zakatAnniversaryIslamic: null,
                 calculationMethod: 'quantity'
             },
             currentCalculationResult: null,
@@ -1743,7 +1742,6 @@
             }
             return maxStreak;
         }
-
         async function renderMilestones() {
             const container = document.getElementById('milestones-container');
             container.innerHTML = '';
@@ -1751,14 +1749,12 @@
                 dbRequest(getStore(STORES.calculations, 'readonly').getAll()),
                 dbRequest(getStore(STORES.payments, 'readonly').getAll())
             ]);
-
             const stats = {
                 consecutiveYears: calculateConsecutiveYears(calculations.map(c => c.year)),
                 totalPayments: payments.length,
                 totalPaid: payments.reduce((sum, p) => sum + p.amount, 0),
                 uniqueRecipients: new Set(payments.map(p => p.recipient).filter(Boolean)).size
             };
-
             const milestones = [
                 {
                     condition: stats.consecutiveYears > 1,
@@ -1789,7 +1785,6 @@
                     value: `${stats.uniqueRecipients} لوگ/ادارے`
                 }
             ];
-
             let milestonesHtml = '';
             milestones.forEach(m => {
                 if (m.condition) {
@@ -1803,7 +1798,6 @@
                         </div>`;
                 }
             });
-
             if (milestonesHtml) {
                 container.innerHTML = milestonesHtml;
             } else {
@@ -2136,6 +2130,45 @@
                 document.getElementById('payment-amount').value = '';
             }
         }
+        async function getGregorianDateFromIslamic(islamicDateString) {
+            const cacheKey = `gregorianDate_from_islamic_${islamicDateString}`;
+            const cachedGregorianDate = localStorage.getItem(cacheKey);
+            if (cachedGregorianDate) {
+                console.log(`DEBUG: Gregorian date found in cache for Islamic date ${islamicDateString}:`, cachedGregorianDate);
+                return cachedGregorianDate;
+            }
+            try {
+                const response = await fetch(`https://api.aladhan.com/v1/hToG/${islamicDateString}`);
+                if (!response.ok) {
+                    console.error(`DEBUG: API Response not OK for hToG. Status: ${response.status}`);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const responseData = await response.json();
+                console.log('DEBUG: Parsed API Response Data for hToG:', responseData);
+                if (responseData && responseData.data) {
+                    let gregorianData = null;
+                    if (Array.isArray(responseData.data) && responseData.data.length > 0 && responseData.data[0].gregorian) {
+                        gregorianData = responseData.data[0].gregorian;
+                        console.log('DEBUG: Found gregorian data in array format (hToG).');
+                    } else if (typeof responseData.data === 'object' && responseData.data.gregorian) {
+                        gregorianData = responseData.data.gregorian;
+                        console.log('DEBUG: Found gregorian data in object format (hToG).');
+                    }
+                    if (gregorianData && gregorianData.date) {
+                        const [day, month, year] = gregorianData.date.split('-');
+                        const gregorianDate = `${year}-${month}-${day}`;
+                        localStorage.setItem(cacheKey, gregorianDate);
+                        console.log("DEBUG: Gregorian date successfully extracted and cached from hToG:", gregorianDate);
+                        return gregorianDate;
+                    }
+                }
+                console.warn("DEBUG: Could not find valid gregorian data within responseData.data for hToG.", responseData);
+                return null;
+            } catch (error) {
+                console.error("DEBUG: Error fetching Gregorian date from Islamic API:", error);
+                return null;
+            }
+        }
         async function generateReport() {
             const year = document.getElementById('report-year-filter').value;
             const area = document.getElementById('report-area');
@@ -2150,20 +2183,17 @@
                 const payments = await dbRequest(getStore(STORES.payments, 'readonly').index('year_idx').getAll(IDBKeyRange.only(Number(year))));
                 const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
                 const remaining = calc.isZakatDue ? Math.max(0, calc.zakatAmount - totalPaid) : 0;
-
                 const impactCounts = payments.reduce((acc, p) => {
                     if (p.impactTag && p.impactTag !== 'none') {
                         acc[p.impactTag] = (acc[p.impactTag] || 0) + 1;
                     }
                     return acc;
                 }, {});
-
                 let impactSummaryHtml = '';
                 if (Object.keys(impactCounts).length > 0) {
                     const impactItems = Object.entries(impactCounts).map(([tag, count]) => `<li><strong>${tag}:</strong> ${count} مرتبہ</li>`).join('');
                     impactSummaryHtml = `<div class="card" style="margin-top:1rem"><h3>اثرات کا خلاصہ</h3><p>اس سال آپ کی ادائیگیوں نے مندرجہ ذیل شعبوں میں مدد فراہم کی:</p><ul>${impactItems}</ul></div>`;
                 }
-
                 area.innerHTML = `<h2>سال ${year} کی زکوٰۃ رپورٹ</h2><div class="card"><h3>خلاصہ</h3><table><tbody><tr><td>واجب الادا زکوٰۃ</td><td>${formatCurrency(calc.zakatAmount)}</td></tr><tr><td>ادا شدہ زکوٰۃ</td><td>${formatCurrency(totalPaid)}</td></tr><tr><td>بقیہ زکوٰۃ</td><td style="color:${remaining > 0 ? 'var(--error-color)' : 'var(--success-color)'}; font-weight: bold;">${formatCurrency(remaining)}</td></tr></tbody></table></div><div class="card" style="margin-top:1rem"><h3>ادائیگیوں کی تفصیل</h3>${payments.length > 0 ? `<table><thead><th>تاریخ</th><th>رقم</th><th>وصول کنندہ</th><th>کیٹیگری</th></thead><tbody>${payments.map(p => `<tr><td>${new Date(p.date).toLocaleDateString('ur-PK')}</td><td>${formatCurrency(p.amount)}</td><td>${p.recipient || '-'}</td><td>${p.category || '-'}</td></tr>`).join('')}</tbody></table>` : `<p class="placeholder-text">اس سال کوئی ادائیگی نہیں کی گئی۔</p>`}</div>${impactSummaryHtml}`;
                 area.style.display = 'block'
             }
@@ -2281,27 +2311,47 @@
                 reader.readAsText(file)
             })
         }
-        function updateAnniversaryReminder() {
+        async function updateAnniversaryReminder() {
             const reminderDiv = document.getElementById('anniversary-reminder');
-            const anniversary = appState.settings.zakatAnniversary;
-            if (!anniversary) {
+            const anniversaryIslamic = appState.settings.zakatAnniversaryIslamic;
+            if (!anniversaryIslamic) {
                 reminderDiv.innerHTML = `<i class="bi bi-info-circle"></i> اپنی زکوٰۃ کی سالگرہ کی تاریخ 'سیٹنگز' میں درج کریں تاکہ آپ کو یاد دہانی کروائی جا سکے۔`;
-                return
+                return;
             }
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            const annivDate = new Date(anniversary);
-            let nextAnniversary = new Date(today.getFullYear(), annivDate.getMonth(), annivDate.getDate());
-            if (nextAnniversary < today) {
-                nextAnniversary.setFullYear(today.getFullYear() + 1)
+            const todayGregorianString = today.toISOString().slice(0, 10);
+            const [annivDay, annivMonth, annivYear] = anniversaryIslamic.split('-').map(Number);
+            let nextAnniversaryIslamicDate = null;
+            const currentIslamicDate = await getIslamicDateFromGregorian(todayGregorianString);
+            if (!currentIslamicDate) {
+                reminderDiv.innerHTML = `<i class="bi bi-exclamation-triangle"></i> اسلامی تاریخ کی یاد دہانی دستیاب نہیں۔`;
+                return;
             }
-            const diffTime = nextAnniversary - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            if (diffDays === 0) {
-                reminderDiv.innerHTML = `<i class="bi bi-calendar-heart-fill"></i> آج آپ کی زکوٰۃ کی سالگرہ ہے! اپنا حساب لگانا نہ بھولیں۔`
+            const [currentDay, currentMonth, currentYear] = currentIslamicDate.split('-').map(Number);
+            let targetIslamicYear = currentYear;
+            if (currentMonth > annivMonth || (currentMonth === annivMonth && currentDay > annivDay)) {
+                targetIslamicYear++;
+            }
+            nextAnniversaryIslamicDate = `${annivDay}-${annivMonth}-${targetIslamicYear}`;
+            const nextAnniversaryGregorianString = await getGregorianDateFromIslamic(nextAnniversaryIslamicDate);
+            if (!nextAnniversaryGregorianString) {
+                reminderDiv.innerHTML = `<i class="bi bi-exclamation-triangle"></i> اسلامی سالگرہ کی گریگورین تاریخ حاصل کرنے میں ناکامی۔`;
+                return;
+            }
+            const nextAnniversaryGregorian = new Date(nextAnniversaryGregorianString);
+            nextAnniversaryGregorian.setHours(0, 0, 0, 0);
+            const timeDiff = nextAnniversaryGregorian.getTime() - today.getTime();
+            const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+            let message = `<i class="bi bi-calendar-heart"></i> آپ کی اگلی زکوٰۃ کی اسلامی سالگرہ ${anniversaryIslamic} کو ہے۔`;
+            if (daysRemaining === 0) {
+                message = `<i class="bi bi-calendar-heart-fill"></i> آج آپ کی زکوٰۃ کی اسلامی سالگرہ ہے! اپنا حساب لگانا نہ بھولیں۔`;
+            } else if (daysRemaining > 0) {
+                message += ` (${daysRemaining} دن باقی ہیں)`;
             } else {
-                reminderDiv.innerHTML = `<i class="bi bi-calendar-heart"></i> آپ کی اگلی زکوٰۃ کی سالگرہ میں <strong>${diffDays}</strong> دن باقی ہیں۔`
+                message = `<i class="bi bi-calendar-heart"></i> آپ کی اگلی زکوٰۃ کی اسلامی سالگرہ ${anniversaryIslamic} کو ہے۔`;
             }
+            reminderDiv.innerHTML = message;
         }
         function requestNotificationPermission() {
             if (!('Notification' in window)) {
@@ -2320,25 +2370,53 @@
             })
         }
         async function checkAndShowNotification() {
-            if (!('Notification' in window) || Notification.permission !== "granted" || !appState.settings.zakatAnniversary) return;
+            if (!('Notification' in window) || Notification.permission !== "granted" || !appState.settings.zakatAnniversaryIslamic) return;
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            const annivDate = new Date(appState.settings.zakatAnniversary);
-            let nextAnniversary = new Date(today.getFullYear(), annivDate.getMonth(), annivDate.getDate());
-            if (nextAnniversary < today) {
-                nextAnniversary.setFullYear(today.getFullYear() + 1)
+            const todayGregorianString = today.toISOString().slice(0, 10);
+            const lastNotificationDate = localStorage.getItem('lastNotificationDate');
+            if (lastNotificationDate === todayGregorianString) {
+                console.log("DEBUG: Notification already sent today.");
+                return;
             }
-            const diffDays = Math.ceil((nextAnniversary - today) / (1000 * 60 * 60 * 24));
-            const lastNotification = localStorage.getItem('lastNotificationDate');
-            const todayStr = today.toISOString().slice(0, 10);
-            if (diffDays >= 0 && diffDays <= 10 && lastNotification !== todayStr) {
+            const anniversaryIslamic = appState.settings.zakatAnniversaryIslamic;
+            const [annivDay, annivMonth, annivYear] = anniversaryIslamic.split('-').map(Number);
+            const currentIslamicDate = await getIslamicDateFromGregorian(todayGregorianString);
+            if (!currentIslamicDate) {
+                console.warn("DEBUG: Could not get current Islamic date for notification check.");
+                return;
+            }
+            const [currentDay, currentMonth, currentYear] = currentIslamicDate.split('-').map(Number);
+            let targetIslamicYear = currentYear;
+            if (currentMonth > annivMonth || (currentMonth === annivMonth && currentDay > annivDay)) {
+                targetIslamicYear++;
+            }
+            const nextAnniversaryIslamicDate = `${annivDay}-${annivMonth}-${targetIslamicYear}`;
+            const nextAnniversaryGregorianString = await getGregorianDateFromIslamic(nextAnniversaryIslamicDate);
+            if (!nextAnniversaryGregorianString) {
+                console.warn("DEBUG: Could not get next Gregorian anniversary date for notification check.");
+                return;
+            }
+            const nextAnniversaryGregorian = new Date(nextAnniversaryGregorianString);
+            nextAnniversaryGregorian.setHours(0, 0, 0, 0);
+            const timeDiff = nextAnniversaryGregorian.getTime() - today.getTime();
+            const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+            console.log(`DEBUG: Days remaining for notification check: ${daysRemaining}`);
+            if (daysRemaining >= 0 && daysRemaining <= 20) {
                 const reg = await navigator.serviceWorker.ready;
+                let notificationBody = `آپ کی زکوٰۃ کی اسلامی سالگرہ ${anniversaryIslamic} کو ہے۔`;
+                if (daysRemaining === 0) {
+                    notificationBody = `آج آپ کی زکوٰۃ کی اسلامی سالگرہ ہے! اپنا حساب لگانا نہ بھولیں۔`;
+                } else {
+                    notificationBody += ` (${daysRemaining} دن باقی ہیں)`;
+                }
                 reg.showNotification('زکوٰۃ کی یاد دہانی', {
-                    body: `آپ کی زکوٰۃ کی سالگرہ میں ${diffDays} دن باقی ہیں۔ اپنا حساب لگانا نہ بھولیں۔`,
+                    body: notificationBody,
                     icon: 'icons/icon-192x192.png',
                     tag: 'zakat-reminder'
                 });
-                localStorage.setItem('lastNotificationDate', todayStr)
+                localStorage.setItem('lastNotificationDate', todayGregorianString);
+                console.log("DEBUG: Notification sent successfully.");
             }
         }
         async function autofillPaymentAmount() {
@@ -2358,6 +2436,41 @@
                 }
             } catch (error) {
                 console.error("Failed to autofill payment amount:", error)
+            }
+        }
+        async function getIslamicDateFromGregorian(gregorianDateString) {
+            const cacheKey = `islamicDate_${gregorianDateString}`;
+            const cachedIslamicDate = localStorage.getItem(cacheKey);
+            if (cachedIslamicDate) {
+                console.log(`DEBUG: Islamic date found in cache for ${gregorianDateString}:`, cachedIslamicDate);
+                return cachedIslamicDate;
+            }
+            try {
+                const [year, month, day] = gregorianDateString.split('-');
+                const formattedDate = `${day}-${month}-${year}`;
+                const response = await fetch(`https://api.aladhan.com/v1/gToH/${formattedDate}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const responseData = await response.json();
+                let hijriData = null;
+                if (responseData && responseData.data) {
+                    if (Array.isArray(responseData.data) && responseData.data.length > 0 && responseData.data[0].hijri) {
+                        hijriData = responseData.data[0].hijri;
+                    }
+                    else if (typeof responseData.data === 'object' && responseData.data.hijri) {
+                        hijriData = responseData.data.hijri;
+                    }
+                }
+                if (hijriData) {
+                    const islamicDate = `${hijriData.day}-${hijriData.month.number}-${hijriData.year}`;
+                    localStorage.setItem(cacheKey, islamicDate);
+                    return islamicDate;
+                } else {
+                    return null;
+                }
+            } catch (error) {
+                return null;
             }
         }
         function setupEventListeners() {
@@ -2398,7 +2511,6 @@
                     showTab('settings');
                     return
                 }
-
                 const data = {
                     year: parseInt(document.getElementById('year').value),
                     goldKarat: parseInt(document.getElementById('gold-karat').value),
@@ -2428,6 +2540,21 @@
                 if (isNaN(settingsData.goldPrice) || isNaN(settingsData.silverPrice) || !settingsData.currencySymbol) {
                     showToast("براہ کرم درست قیمتیں اور کرنسی کی علامت درج کریں۔", 'error');
                     return
+                }
+                if (settingsData.zakatAnniversary) {
+                    try {
+                        const islamicDate = await getIslamicDateFromGregorian(settingsData.zakatAnniversary);
+                        if (islamicDate) {
+                            settingsData.zakatAnniversaryIslamic = islamicDate;
+                        } else {
+                            showToast("اسلامی تاریخ حاصل کرنے میں ناکامی۔", 'warning');
+                        }
+                    } catch (error) {
+                        console.error("Error fetching Islamic date:", error);
+                        showToast("اسلامی تاریخ حاصل کرنے میں خرابی۔", 'error');
+                    }
+                } else {
+                    settingsData.zakatAnniversaryIslamic = null;
                 }
                 await saveData(STORES.settings, settingsData);
                 appState.settings = settingsData;
@@ -2462,7 +2589,6 @@
                 populateRecipientSuggestions();
                 populatePaymentYearSelect()
             });
-
             document.getElementById('clear-data-btn').addEventListener('click', () => {
                 showConfirmation('تمام ڈیٹا حذف کریں؟', 'یہ عمل واپس نہیں لیا جا سکتا! تمام حسابات، ادائیگیاں، اور سیٹنگز حذف ہو جائیں گی۔', async () => {
                     await db.close();
