@@ -1134,6 +1134,13 @@
                             <input type="number" id="gold-price" step="any" required>
                         </div>
                         <div class="form-group">
+                            <label for="calculation-method"><i class="bi bi-intersect"></i> حساب کا طریقہ:</label>
+                            <select id="calculation-method" name="calculation-method">
+                                <option value="value">بذریعہ قیمت (ضم بالقيمة)</option>
+                                <option value="quantity">بذریعہ اجزاء (ضم بالاجزاء)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label for="silver-price"><i class="bi bi-currency-dollar"></i> چاندی کی قیمت (فی
                                 تولہ):</label>
                             <input type="number" id="silver-price" step="any" required>
@@ -1149,10 +1156,10 @@
                             <input type="date" id="zakat-anniversary">
                         </div>
                     </div>
-                    <div class="form-actions">
-                        <button type="submit"><i class="bi bi-check-lg"></i> سیٹنگز محفوظ کریں
-                        </button>
-                    </div>
+<div class="form-actions">
+    <button type="submit"><i class="bi bi-check-lg"></i> سیٹنگز محفوظ کریں</button>
+    <button type="button" id="fetch-prices-btn" class="secondary"><i class="bi bi-cloud-download"></i> تازہ ترین قیمتیں حاصل کریں</button>
+</div>
                 </form>
                 <h3 class="section-header no-print">اطلاعات (Notifications)</h3>
                 <div class="data-actions no-print">
@@ -1208,7 +1215,8 @@
                 goldPrice: 0,
                 silverPrice: 0,
                 currencySymbol: 'PKR',
-                zakatAnniversary: null
+                zakatAnniversary: null,
+                calculationMethod: 'value'
             },
             currentCalculationResult: null,
             isEditingPayment: null
@@ -1270,6 +1278,31 @@
             const store = getStore(storeName, 'readwrite');
             return dbRequest(store.delete(key))
         }
+        async function fetchLivePrices() {
+    try {
+        const response = await fetch('prices-history.json');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const pricesHistory = await response.json();
+        if (pricesHistory && pricesHistory.length > 0) {
+            pricesHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const latestPrice = pricesHistory[0];
+
+            appState.settings.goldPrice = latestPrice.gold;
+            appState.settings.silverPrice = latestPrice.silver;
+
+            document.getElementById('gold-price').value = latestPrice.gold;
+            document.getElementById('silver-price').value = latestPrice.silver;
+            
+            updatePriceInfoInCalculator();
+            showToast('تازہ ترین قیمتیں حاصل کر لی گئیں۔', 'success');
+        }
+    } catch (error) {
+        console.error("Could not fetch live prices:", error);
+        showToast('تازہ ترین قیمتیں حاصل کرنے میں ناکامی۔', 'error');
+    }
+}
         async function loadSettings() {
             try {
                 const store = getStore(STORES.settings, 'readonly');
@@ -1280,7 +1313,8 @@
                 document.getElementById('gold-price').value = appState.settings.goldPrice || '';
                 document.getElementById('silver-price').value = appState.settings.silverPrice || '';
                 document.getElementById('currency-symbol').value = appState.settings.currencySymbol || 'PKR';
-                document.getElementById('zakat-anniversary').value = appState.settings.zakatAnniversary || ''
+                document.getElementById('zakat-anniversary').value = appState.settings.zakatAnniversary || '';
+                document.getElementById('calculation-method').value = appState.settings.calculationMethod || 'value';
             } catch (error) {
                 console.error("Failed to load settings:", error)
             }
@@ -1382,7 +1416,7 @@
             return `${num.toLocaleString('en-US', { maximumFractionDigits: 2 })} ${appState.settings.currencySymbol || 'PKR'}`
         }
 
-        function calculateZakat(data, prices) {
+        function calculateZakat(data, prices, settings) {
             const {
                 gold,
                 silver,
@@ -1396,12 +1430,13 @@
                 goldPrice,
                 silverPrice
             } = prices;
-            const purityFactors = {
-                24: 1,
-                22: 22 / 24,
-                18: 18 / 24
-            };
+            const {
+                calculationMethod
+            } = settings;
+
+            const purityFactors = { 24: 1, 22: 22 / 24, 18: 18 / 24 };
             const pureGoldWeight = gold * purityFactors[goldKarat];
+            
             const result = {
                 inputs: data,
                 prices: prices,
@@ -1414,26 +1449,41 @@
                 zakatAmount: 0,
                 message: ''
             };
+
             if (silverPrice <= 0) {
                 result.message = "چاندی کی قیمت سیٹنگز میں درکار ہے۔";
-                return result
+                return result;
             }
-            const totalValueAllAssets = result.goldValue + result.silverValue + cash + businessGoods + receivables;
-            if (totalValueAllAssets >= result.nisabValue) {
-                result.isZakatDue = true
+
+            result.totalAssets = result.goldValue + result.silverValue + cash + businessGoods + receivables;
+            
+            if (gold >= 7.5 || silver >= 52.5) {
+                result.isZakatDue = true;
+                result.message = "سونے یا چاندی کا انفرادی نصاب مکمل ہے۔";
+            } else if (calculationMethod === 'quantity') {
+                const requiredSilver = 52.5 - (gold * 7);
+                if (silver >= requiredSilver && requiredSilver > 0) {
+                    result.isZakatDue = true;
+                    result.message = `نصاب بذریعہ اجزاء (ضم بالاجزاء) مکمل ہے۔ مطلوبہ چاندی (${requiredSilver.toFixed(2)} تولے) موجود ہے۔`;
+                } else {
+                    result.message = `نصاب مکمل نہیں ہے۔ مطلوبہ چاندی (${requiredSilver.toFixed(2)} تولے) موجود نہیں۔`;
+                }
+            } else { // Default to 'value' method
+                if (result.totalAssets >= result.nisabValue) {
+                    result.isZakatDue = true;
+                    result.message = `نصاب بذریعہ قیمت (ضم بالقيمة) مکمل ہے (کل مالیت نصاب کی قیمت ${formatCurrency(result.nisabValue)} سے زیادہ ہے)۔`;
+                } else {
+                    result.message = `نصاب مکمل نہیں ہے (کل مالیت نصاب کی قیمت ${formatCurrency(result.nisabValue)} سے کم ہے)۔`;
+                }
             }
-            result.totalAssets = totalValueAllAssets;
+
             result.zakatableAssets = Math.max(0, result.totalAssets - liabilities);
             if (result.isZakatDue) {
                 result.zakatAmount = result.zakatableAssets * 0.025;
-                result.message = `نصاب پورا ہے (کل مالیت نصاب کی قیمت ${formatCurrency(result.nisabValue)} سے زیادہ ہے)۔`
-            } else {
-                result.message = `نصاب پورا نہیں ہے (کل مالیت نصاب کی قیمت ${formatCurrency(result.nisabValue)} سے کم ہے)۔`
             }
+
             appState.currentCalculationResult = {
-                year: data.year,
-                ...data,
-                ...prices,
+                year: data.year, ...data, ...prices,
                 totalAssets: result.totalAssets,
                 nisabValue: result.nisabValue,
                 zakatableAssets: result.zakatableAssets,
@@ -1441,9 +1491,8 @@
                 zakatAmount: result.zakatAmount,
                 calculationDate: new Date().toISOString()
             };
-            return result
+            return result;
         }
-
         function displayCalculationResult(result) {
             const resultArea = document.getElementById('zakat-result');
             const saveBtn = document.getElementById('save-calc-btn');
@@ -1924,6 +1973,7 @@
                     showTab('settings');
                     return
                 }
+                document.getElementById('fetch-prices-btn').addEventListener('click', fetchLivePrices);
                 const data = {
                     year: parseInt(document.getElementById('year').value),
                     goldKarat: parseInt(document.getElementById('gold-karat').value),
@@ -1938,7 +1988,7 @@
                     showToast("براہ کرم ایک درست سال درج کریں۔", 'error');
                     return
                 }
-                displayCalculationResult(calculateZakat(data, appState.settings))
+                displayCalculationResult(calculateZakat(data, appState.settings, appState.settings));
             });
             document.getElementById('settings-form').addEventListener('submit', async event => {
                 event.preventDefault();
@@ -1947,7 +1997,8 @@
                     goldPrice: parseFloat(document.getElementById('gold-price').value),
                     silverPrice: parseFloat(document.getElementById('silver-price').value),
                     currencySymbol: document.getElementById('currency-symbol').value,
-                    zakatAnniversary: document.getElementById('zakat-anniversary').value
+                    zakatAnniversary: document.getElementById('zakat-anniversary').value,
+                    calculationMethod: document.getElementById('calculation-method').value
                 };
                 if (isNaN(settingsData.goldPrice) || isNaN(settingsData.silverPrice) || !settingsData.currencySymbol) {
                     showToast("براہ کرم درست قیمتیں اور کرنسی کی علامت درج کریں۔", 'error');
@@ -2034,6 +2085,7 @@
             try {
                 await openDB();
                 await loadSettings();
+                await fetchLivePrices();
                 showTab('dashboard');
                 setupEventListeners();
                 await Promise.all([populatePaymentHistoryYearFilter(), populateReportYearFilter(), checkAndShowNotification()]);
