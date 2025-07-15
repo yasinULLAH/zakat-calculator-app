@@ -28,7 +28,11 @@
             --warning-color: #ffc107;
             --info-color: #17a2b8;
             --button-text-color: #fff;
-            --font-family: 'Noto Nastaliq Urdu', serif
+            --font-family: Calibri, 'Noto Nastaliq Urdu', serif
+        }
+
+        #tab-ushr>i {
+            color: #00c200;
         }
 
         * {
@@ -781,6 +785,125 @@
             top: -45px;
             left: -206px;
         }
+
+        @media (max-width: 767px) {
+            #payment-category-chart {
+                position: static;
+                top: auto;
+                left: auto;
+                height: auto;
+                width: 100%;
+            }
+        }
+
+        header .bi-moon-stars-fill {
+            color: #ffc107;
+        }
+
+        #tab-dash .bi-layout-wtf {
+            color: #17a2b8;
+        }
+
+        #tab-calc .bi-calculator-fill {
+            color: #6c757d;
+        }
+
+        #tab-ushr .bi-tree-fill {
+            color: #28a745;
+        }
+
+        #tab-pay .bi-cash-coin {
+            color: #ffc107;
+        }
+
+        #tab-hist .bi-clock-history {
+            color: #0d6efd;
+        }
+
+        #tab-rep .bi-bar-chart-line-fill {
+            color: #6f42c1;
+        }
+
+        #tab-info .bi-info-circle-fill {
+            color: #0dcaf0;
+        }
+
+        #tab-set .bi-gear-fill {
+            color: #495057;
+        }
+
+        .form-group .bi-calendar-event,
+        .form-group .bi-calendar-check,
+        .form-group .bi-calendar-plus,
+        .form-group .bi-calendar-heart {
+            color: #fd7e14;
+        }
+
+        .form-group .bi-gem {
+            color: #ffc107;
+        }
+
+        .form-group .bi-wallet2,
+        .form-group .bi-cash {
+            color: #198754;
+        }
+
+        .form-group .bi-box-seam {
+            color: #8B4513;
+        }
+
+        .form-group .bi-arrow-down-left-circle {
+            color: #20c997;
+        }
+
+        .form-group .bi-arrow-up-right-circle {
+            color: #dc3545;
+        }
+
+        .form-group .bi-person-fill {
+            color: #0d6efd;
+        }
+
+        .form-group .bi-tags-fill {
+            color: #6f42c1;
+        }
+
+        .form-group .bi-pencil-square {
+            color: #6c757d;
+        }
+
+        .form-group .bi-basket-fill {
+            color: #28a745;
+        }
+
+        .form-group .bi-tag-fill {
+            color: #6c757d;
+        }
+
+        .form-group .bi-droplet-half {
+            color: #0dcaf0;
+        }
+
+        .form-group .bi-currency-dollar {
+            color: #198754;
+        }
+
+        .form-group .bi-intersect {
+            color: #6f42c1;
+        }
+
+        .form-group .bi-translate {
+            color: #fd7e14;
+        }
+
+        #clear-data-btn .bi-trash3-fill,
+        button.danger .bi-trash-fill {
+            color: #fff;
+        }
+
+        #enable-notifications-btn .bi-bell-fill {
+            color: #ffc107;
+        }
     </style>
 </head>
 
@@ -798,6 +921,14 @@
                 <li>
                     <button id="tab-calc" onclick="showTab('calculator')"><i class="bi bi-calculator-fill"></i>
                         <span>کیلکولیٹر</span></button>
+                </li>
+                <li>
+                    <button id="tab-ushr" onclick="showTab('ushr')"><i class="bi bi-tree-fill"></i>
+                        <span>عشر کیلکولیٹر</span></button>
+                </li>
+                <li>
+                    <button id="tab-fidy" onclick="showTab('fidya-kaffara')"><i
+                            class="bi bi-shield-fill-exclamation"></i> <span>فدیہ/کفارہ</span></button>
                 </li>
                 <li>
                     <button id="tab-pay" onclick="showTab('payments')"><i class="bi bi-cash-coin"></i>
@@ -822,6 +953,86 @@
             </ul>
         </nav>
         <main id="main-content">
+            <div id="fidya-kaffara" class="tab-content card">
+                <h2>فدیہ و کفارہ</h2>
+                <details>
+                    <summary><strong>کفارہ (Expiation)</strong>: گناہوں یا ٹوٹی ہوئی قسموں کا ازالہ</summary>
+                    <h4>کفارہ کی اقسام:</h4>
+                    <ul>
+                        <li><strong>روزہ توڑنا (جان بوجھ کر):</strong> ایک غلام آزاد کریں، یا 60 دن لگاتار روزے رکھیں،
+                            یا 60 مسکینوں کو کھانا کھلائیں۔</li>
+                        <li><strong>قسم توڑنا / ایلاء:</strong> ایک غلام آزاد کریں، یا 10 مسکینوں کو کھانا کھلائیں، یا
+                            10 مسکینوں کو کپڑے پہنائیں، یا 3 دن روزے رکھیں۔</li>
+                        <li><strong>ظہار (بیوی کو ماں جیسا کہنا):</strong> ایک غلام آزاد کریں، یا 60 دن لگاتار روزے
+                            رکھیں، یا 60 مسکینوں کو کھانا کھلائیں۔</li>
+                    </ul>
+                </details>
+                <details style="margin-top:1rem;">
+                    <summary><strong>فدیہ (روزے کا معاوضہ)</strong>: جب کوئی بڑھاپے یا دائمی بیماری کی وجہ سے روزہ نہ
+                        رکھ سکے</summary>
+                    <p>یہ اس وقت ادا کیا جاتا ہے جب کوئی شخص بڑھاپے یا ایسی دائمی بیماری کی وجہ سے روزہ رکھنے سے قاصر ہو
+                        جس سے صحت یابی کی امید نہ ہو۔</p>
+                    <ul>
+                        <li><strong>مقدار فی دن:</strong> تقریباً 1.75 کلو گرام گندم یا اس کی موجودہ بازاری قیمت۔</li>
+                        <li><strong>مثال (موجودہ قیمت):</strong> تقریباً 90 پاکستانی روپے فی دن۔</li>
+                    </ul>
+                </details>
+                <h3 class="section-header">کیلکولیٹر</h3>
+                <form id="fk-form">
+                    <div class="form-grid single-col">
+                        <div class="form-group">
+                            <label for="fk-type"><i class="bi bi-ui-checks"></i> قسم منتخب کریں:</label>
+                            <select id="fk-type">
+                                <option value="fidya">فدیہ (روزہ نہ رکھنے کا معاوضہ)</option>
+                                <option value="kaffara-fast">کفارہ (روزہ توڑنے کا - کھانا کھلانا)</option>
+                                <option value="kaffara-oath">کفارہ (قسم توڑنے کا - کھانا/کپڑے)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="fk-cost"><i class="bi bi-cash"></i> فی کس/یومیہ لاگت (<span
+                                    id="fk-currency-symbol"></span>):</label>
+                            <input type="number" id="fk-cost" value="90" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="fk-quantity"><i class="bi bi-people-fill"></i> <span id="fk-quantity-label">دنوں
+                                    کی تعداد</span>:</label>
+                            <input type="number" id="fk-quantity" value="1" min="1" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit"><i class="bi bi-play-fill"></i> حساب لگائیں</button>
+                        </div>
+                    </div>
+                </form>
+                <div id="fk-result" class="result-area" style="display:none"></div>
+            </div>
+            <div id="ushr" class="tab-content card">
+                <h2>عشر کیلکولیٹر (زرعی پیداوار پر زکوٰۃ)</h2>
+                <div class="info-area">
+                    <i class="bi bi-info-circle"></i> عشر اس زرعی پیداوار پر واجب ہوتا ہے جو زمین سے حاصل ہوتی ہے۔ اس کا
+                    نصاب 5 وسق (تقریباً 653 کلوگرام) ہے۔
+                </div>
+                <form id="ushr-form" class="form-grid single-col" style="margin-top: 1.5rem;">
+                    <div class="form-group">
+                        <label for="produce-amount"><i class="bi bi-basket-fill"></i> کل پیداوار (کلوگرام میں):</label>
+                        <input type="number" id="produce-amount" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="price-per-kg"><i class="bi bi-tag-fill"></i> فی کلو قیمت:</label>
+                        <input type="number" id="price-per-kg" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="irrigation-type"><i class="bi bi-droplet-half"></i> آبپاشی کی قسم:</label>
+                        <select id="irrigation-type" required>
+                            <option value="0.10">قدرتی (بارانی، چشمے، دریا) - 10%</option>
+                            <option value="0.05">مصنوعی (ٹیوب ویل، نہری پانی) - 5%</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit"><i class="bi bi-calculator"></i> عشر کا حساب لگائیں</button>
+                    </div>
+                </form>
+                <div id="ushr-result" class="result-area" style="display:none;"></div>
+            </div>
             <div id="dashboard" class="tab-content card">
                 <h2>ڈیش بورڈ</h2>
                 <div class="info-area" id="anniversary-reminder"></div>
@@ -1159,13 +1370,6 @@
                             <input type="number" id="gold-price" step="any" required>
                         </div>
                         <div class="form-group">
-                            <label for="calculation-method"><i class="bi bi-intersect"></i> حساب کا طریقہ:</label>
-                            <select id="calculation-method" name="calculation-method">
-                                <option value="value">بذریعہ قیمت (ضم بالقيمة)</option>
-                                <option value="quantity">بذریعہ اجزاء (ضم بالاجزاء)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
                             <label for="silver-price"><i class="bi bi-currency-dollar"></i> چاندی کی قیمت (فی
                                 تولہ):</label>
                             <input type="number" id="silver-price" step="any" required>
@@ -1174,6 +1378,13 @@
                             <label for="currency-symbol"><i class="bi bi-translate"></i> کرنسی کی علامت:
                             </label>
                             <input type="text" id="currency-symbol" value="PKR" required>
+                        </div>
+                                                <div class="form-group">
+                            <label for="calculation-method"><i class="bi bi-intersect"></i> حساب کا طریقہ:</label>
+                            <select id="calculation-method" name="calculation-method">
+                                <option value="value">بذریعہ قیمت (ضم بالقيمة)</option>
+                                <option value="quantity">بذریعہ اجزاء (ضم بالاجزاء)</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="zakat-anniversary"><i class="bi bi-calendar-heart"></i> زکوٰۃ کی سالگرہ کی
@@ -1360,9 +1571,43 @@
                 },
                 info: () => {
                     document.querySelector('.lang-btn.active').click()
-                }
+                },
+                'fidya-kaffara': updateFkForm
             }[tabId];
             if (handler) handler()
+        }
+        function updateFkForm() {
+            const type = document.getElementById('fk-type').value;
+            const quantityLabel = document.getElementById('fk-quantity-label');
+            const costInput = document.getElementById('fk-cost');
+            const KaffaraMapping = {
+                'kaffara-fast': { label: 'افراد کی تعداد', quantity: 60 },
+                'kaffara-oath': { label: 'افراد کی تعداد', quantity: 10 },
+                'fidya': { label: 'دنوں کی تعداد', quantity: 1 }
+            };
+            const mapping = KaffaraMapping[type];
+            if (mapping) {
+                quantityLabel.textContent = mapping.label;
+                document.getElementById('fk-quantity').value = mapping.quantity;
+            }
+            document.getElementById('fk-currency-symbol').textContent = appState.settings.currencySymbol || 'PKR';
+            costInput.value = (appState.settings.currencySymbol === 'PKR') ? 90 : 1;
+        }
+        function setupFkEventListeners() {
+            document.getElementById('fk-type').addEventListener('change', updateFkForm);
+            document.getElementById('fk-form').addEventListener('submit', (event) => {
+                event.preventDefault();
+                const cost = parseFloat(document.getElementById('fk-cost').value);
+                const quantity = parseInt(document.getElementById('fk-quantity').value);
+                if (isNaN(cost) || isNaN(quantity) || cost <= 0 || quantity <= 0) {
+                    showToast('براہ کرم درست لاگت اور تعداد درج کریں۔', 'error');
+                    return;
+                }
+                const total = cost * quantity;
+                const resultArea = document.getElementById('fk-result');
+                resultArea.innerHTML = `<h3>کل واجب الادا رقم: <strong>${formatCurrency(total)}</strong></h3>`;
+                resultArea.style.display = 'block';
+            });
         }
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
@@ -1957,6 +2202,36 @@
             }
         }
         function setupEventListeners() {
+            document.getElementById('ushr-form').addEventListener('submit', event => {
+                event.preventDefault();
+                const produceAmount = parseFloat(document.getElementById('produce-amount').value);
+                const pricePerKg = parseFloat(document.getElementById('price-per-kg').value);
+                const irrigationType = parseFloat(document.getElementById('irrigation-type').value);
+                const resultArea = document.getElementById('ushr-result');
+                if (isNaN(produceAmount) || isNaN(pricePerKg) || produceAmount <= 0 || pricePerKg <= 0) {
+                    showToast("برائے مہربانی پیداوار اور قیمت کی درست مقدار درج کریں۔", "error");
+                    return;
+                }
+                const nisabKg = 653;
+                let resultHTML = '';
+                if (produceAmount < nisabKg) {
+                    resultHTML = `<h3>عشر واجب نہیں ہے</h3><p>پیداوار کی مقدار نصاب (${nisabKg} کلوگرام) سے کم ہے۔</p>`;
+                } else {
+                    const totalValue = produceAmount * pricePerKg;
+                    const ushrAmount = totalValue * irrigationType;
+                    const ushrRatePercent = irrigationType * 100;
+                    resultHTML = `
+            <h3>نتیجہ</h3>
+            <ul>
+                <li>پیداوار کی کل مالیت: <strong>${formatCurrency(totalValue)}</strong></li>
+                <li>لاگو شرح: <strong>${ushrRatePercent}%</strong></li>
+            </ul>
+            <h4 style="margin-top:1rem">واجب الادا عشر: <strong>${formatCurrency(ushrAmount)}</strong></h4>
+        `;
+                }
+                resultArea.innerHTML = resultHTML;
+                resultArea.style.display = 'block';
+            });
             document.getElementById('zakat-form').addEventListener('submit', event => {
                 event.preventDefault();
                 if ((parseFloat(document.getElementById('gold').value) > 0 && appState.settings.goldPrice <= 0) || appState.settings.silverPrice <= 0) {
@@ -2081,6 +2356,7 @@
                 */
                 showTab('dashboard');
                 setupEventListeners();
+                setupFkEventListeners();
                 await Promise.all([populatePaymentHistoryYearFilter(), populateReportYearFilter(), checkAndShowNotification()]);
                 if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.register('./sw.js').then(reg => console.log('Service Worker registered successfully', reg)).catch(err => console.error('Service Worker registration failed', err))
