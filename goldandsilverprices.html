@@ -11,7 +11,7 @@
         const goldPriceElement = document.getElementById('goldPrice');
         const silverPriceElement = document.getElementById('silverPrice');
         const lastUpdatedElement = document.getElementById('lastUpdated');
-        const refreshButton = document.getElementById('refreshPrices'); // Now acts as "re-load from file"
+        const refreshButton = document.getElementById('refreshPrices');
 
         goldPriceElement.textContent = 'Fetching...';
         silverPriceElement.textContent = 'Fetching...';
@@ -33,18 +33,6 @@
                 lastUpdatedElement.textContent = latestPrice.timestamp;
                 console.log('Prices loaded from history file:', latestPrice);
 
-                // Optional: Display full history in a table or list
-                // You'd add elements like <ul id="priceHistoryList"></ul>
-                // const historyList = document.getElementById('priceHistoryList');
-                // if (historyList) {
-                //    historyList.innerHTML = ''; // Clear previous entries
-                //    history.forEach(entry => {
-                //        const li = document.createElement('li');
-                //        li.textContent = `${entry.date}: Gold ${entry.gold} ${entry.unit}, Silver ${entry.silver} ${entry.unit}`;
-                //        historyList.appendChild(li);
-                //    });
-                // }
-
             } else {
                 goldPriceElement.textContent = 'No data available.';
                 silverPriceElement.textContent = 'No data available.';
@@ -57,7 +45,7 @@
             lastUpdatedElement.textContent = 'Error';
             console.error('Error fetching history:', error);
         } finally {
-            refreshButton.disabled = false; // Re-enable button
+            refreshButton.disabled = false;
         }
     }
 
