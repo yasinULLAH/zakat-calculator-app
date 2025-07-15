@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ذکاة کا حاسب</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Nastaliq+Urdu&display=swap">
+    <style>
+        body {
+            font-family: 'Noto Nastaliq Urdu', sans-serif;
+            text-align: right;
+            padding: 15px;
+        }
+        section {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #history-section ul {
+            list-style: none;
+        }
+        #history-section li {
+            margin-bottom: 5px;
+        }
+        #alerts-section ul {
+            list-style: none;
+        }
+        #alerts-section li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<section id="assets-section">
+    <h2>اصول کی معلومات</h2>
+    <label for="gold">سونا:</label>
+    <input type="number" id="gold" placeholder="طولے میں مالیت" />
+    <label for="silver">چاندی:</label>
+    <input type="number" id="silver" placeholder="طولے میں مالیت" />
+    <label for="cash">تنخواہ:</label>
+    <input type="number" id="cash" placeholder="روپے میں مالیت" />
+    <label for="businessGoods">تجارتی سامان:</label>
+    <input type="number" id="businessGoods" placeholder="روپے میں مالیت" />
+    <button onclick="updateAssets()">معلومات کو اپ ڈیٹ کریں</button>
+</section>
+
+<section id="price-management-section">
+    <h2>قیمتوں کی مدیریت</h2>
+    <label for="goldPrice">سونے کی قیمت فی گرام:</label>
+    <input type="number" id="goldPrice" placeholder="روپے" />
+    <label for="silverPrice">چاندی کی قیمت فی گرام:</label>
+    <input type="number" id="silverPrice" placeholder="روپے" />
+    <button onclick="updatePrices()">قیمتوں کو اپ ڈیٹ کریں</button>
+</section>
+
+<section id="zakat-calc-section">
+    <h2>ذکاة کا حساب</h2>
+    <button onclick="calculateZakat()">ذکاة کا حساب کریں</button>
+    <p id="zakatResult"></p>
+</section>
+
+<section id="history-section">
+    <h2>حساب کی تاریخ</h2>
+    <ul id="historyList"></ul>
+</section>
+
+<section id="alerts-section">
+    <h2>الرٹس</h2>
+    <label for="priceThreshold">قیمت کے اہم تبدیلی کی حد:</label>
+    <input type="number" id="priceThreshold" placeholder="% میں" />
+    <button onclick="updateAlerts()">الرٹ کی حدود کو اپ ڈیٹ کریں</button>
+    <ul id="alertsList"></ul>
+</section>
+
+<script>
+
+// IndexedDB Setup
+var db;
+var openRequest = window.indexedDB.open("zakatDB", 2);
+openRequest.onupgradeneeded = function(e) {
+    db = e.target.result;
+    var storeAssets = db.createObjectStore("assets", { keyPath: "id", autoIncrement: true });
+    var storeHistory = db.createObjectStore("history", { keyPath: "id", autoIncrement: true });
+    var storePrices = db.createObjectStore("prices", { keyPath: "id", autoIncrement: true });
+    var storeAlerts = db.createObjectStore("alerts", { keyPath: "id", autoIncrement: true });
+};
+openRequest.onsuccess = function(e) { db = e.target.result; };
+
+// Functions
+function updateAssets() {
+    var transaction = db.transaction(["assets"], "readwrite");
+    var store = transaction.objectStore("assets");
+    var gold = parseFloat(document.getElementById("gold").value) || 0;
+    var silver = parseFloat(document.getElementById("silver").value) || 0;
+    var cash = parseFloat(document.getElementById("cash").value) || 0;
+    var businessGoods = parseFloat(document.getElementById("businessGoods").value) || 0;
+
+    store.clear();
+    store.add({
+        gold: gold,
+        silver: silver,
+        cash: cash,
+        businessGoods: businessGoods
+    });
+
+    transaction.oncomplete = function() {
+        alert("اصول کی معلومات کو کامیابی سے اپ ڈیٹ کیا گیا ہے۔");
+    };
+}
+
+function updatePrices() {
+    var transaction = db.transaction(["prices"], "readwrite");
+    var store = transaction.objectStore("prices");
+    var goldPrice = parseFloat(document.getElementById("goldPrice").value) || 0;
+    var silverPrice = parseFloat(document.getElementById("silverPrice").value) || 0;
+
+    store.clear();
+    store.add({
+        goldPrice: goldPrice,
+        silverPrice: silverPrice
+    });
+
+    transaction.oncomplete = function() {
+        alert("قیمتوں کو کامیابی سے اپ ڈیٹ کیا گیا ہے۔");
+        checkPriceAlerts();
+    };
+}
+
+function calculateZakat() {
+    var assetTransaction = db.transaction(["assets"], "readonly");
+    var priceTransaction = db.transaction(["prices"], "readonly");
+    var assetStore = assetTransaction.objectStore("assets");
+    var priceStore = priceTransaction.objectStore("prices");
+
+    var assetRequest = assetStore.get(1);
+    var priceRequest = priceStore.get(1);
+
+    assetTransaction.oncomplete = function() {
+        var assets = assetRequest.result;
+        if (!assets) {
+            alert("پہلے اپنی اصول کی معلومات داخل کریں۔");
+            return;
+        }
+
+        priceTransaction.oncomplete = function() {
+            var prices = priceRequest.result;
+            if (!prices) {
+                alert("پہلے سونے اور چاندی کی قیمتیں داخل کریں۔");
+                return;
+            }
+
+            var goldInGrams = assets.gold * 11.66; // 1 tola = 11.66 grams
+            var silverInGrams = assets.silver * 11.66;
+            var totalWealth = (goldInGrams * prices.goldPrice) + (silverInGrams * prices.silverPrice) + assets.cash + assets.businessGoods;
+
+            var silverNisab = prices.silverPrice * 585; // 52.5 tolas = 585 grams
+            if ((goldInGrams >= 87.375) || (silverInGrams >= 585) || (totalWealth >= silverNisab)) {
+                var zakat = totalWealth * 0.025;
+                document.getElementById("zakatResult").innerText = `ذکاة کا حساب: ${zakat} روپے`;
+                saveToHistory("ذکاة", zakat);
+            } else {
+                document.getElementById("zakatResult").innerText = "ذکاة کا حساب نہیں لگتا۔";
+            }
+        };
+    };
+}
+
+function checkPriceAlerts() {
+    var priceTransaction = db.transaction(["prices"], "readonly");
+    var alertTransaction = db.transaction(["alerts"], "readonly");
+    var priceStore = priceTransaction.objectStore("prices");
+    var alertStore = alertTransaction.objectStore("alerts");
+
+    var priceRequest = priceStore.get(1);
+    var alertRequest = alertStore.get(1);
+
+    priceTransaction.oncomplete = function() {
+        var prices = priceRequest.result;
+        if (!prices) return;
+
+        alertTransaction.oncomplete = function() {
+            var alerts = alertRequest.result;
+            if (!alerts) return;
+
+            var threshold = alerts.priceThreshold;
+            var currentThreshold = (prices.goldPrice * (threshold / 100)) || (prices.silverPrice * (threshold / 100));
+
+            // Assuming only checking for significant changes in gold price for simplicity
+            // Add logic for silver price if needed
+            if (Math.abs(lastGoldPrice - prices.goldPrice) > currentThreshold) {
+                if (lastGoldPrice !== undefined) {
+                    alert(`سونے کی قیمت میں اہم تبدیلی: ${prices.goldPrice} روپے`);
+                    saveToHistory("الرٹ", `سونے کی قیمت: ${prices.goldPrice} روپے`);
+                }
+                lastGoldPrice = prices.goldPrice;
+            }
+        };
+    };
+}
+
+var lastGoldPrice;
+
+function updateAlerts() {
+    var transaction = db.transaction(["alerts"], "readwrite");
+    var store = transaction.objectStore("alerts");
+    var priceThreshold = parseFloat(document.getElementById("priceThreshold").value) || 0;
+
+    store.clear();
+    store.add({
+        priceThreshold: priceThreshold
+    });
+
+    transaction.oncomplete = function() {
+        alert("الرٹ کی حدود کو کامیابی سے اپ ڈیٹ کیا گیا ہے۔");
+    };
+}
+
+function saveToHistory(type, message) {
+    var transaction = db.transaction(["history"], "readwrite");
+    var store = transaction.objectStore("history");
+
+    store.add({
+        type: type,
+        message: message
+    });
+
+    transaction.oncomplete = function() {
+        showHistory();
+    };
+}
+
+function showHistory() {
+    var transaction = db.transaction(["history"], "readonly");
+    var store = transaction.objectStore("history");
+    var request = store.getAll();
+
+    transaction.oncomplete = function() {
+        var historyList = document.getElementById("historyList");
+        historyList.innerHTML = "";
+        request.result.forEach(function(item) {
+            var li = document.createElement("LI");
+            li.innerText = `${item.type}: ${item.message}`;
+            historyList.appendChild(li);
+        });
+    };
+}
+
+</script>
+
+</body>
+</html>

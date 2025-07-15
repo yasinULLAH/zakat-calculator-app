@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zakat Calculator</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #0056b3;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .section {
+            background: #e9ecef;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            width: calc(100% - 12px);
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .output, .alert-output {
+            margin-top: 15px;
+            padding: 10px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            border-radius: 4px;
+        }
+         .alert-output.nisab {
+             background: #fff3cd;
+             border-color: #ffeeba;
+             color: #856404;
+         }
+         .alert-output.price {
+             background: #f8d7da;
+             border-color: #f5c6cb;
+             color: #721c24;
+         }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .container { padding: 15px; }
+            input[type="number"] { width: calc(100% - 18px); }
+            button { width: 100%; margin-top: 5px;}
+            table, th, td { font-size: 0.9em; }
+            h1 { font-size: 1.5em; }
+            h2 { font-size: 1.2em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Zakat Calculator</h1>
+
+        <div class="section" id="prices-section">
+            <h2>Current Market Prices (per Tola)</h2>
+            <label for="goldPrice">Gold Price:</label>
+            <input type="number" id="goldPrice" placeholder="Enter price per tola">
+            <label for="silverPrice">Silver Price:</label>
+            <input type="number" id="silverPrice" placeholder="Enter price per tola">
+            <button onclick="savePrices()">Save Prices</button>
+            <div id="priceAlertOutput" class="alert-output price" style="display: none;"></div>
+        </div>
+
+        <div class="section" id="holdings-section">
+            <h2>Your Holdings</h2>
+            <label for="goldTolas">Gold (Tolas):</label>
+            <input type="number" id="goldTolas" placeholder="Enter gold weight in tolas">
+            <label for="silverTolas">Silver (Tolas):</label>
+            <input type="number" id="silverTolas" placeholder="Enter silver weight in tolas">
+            <label for="cash">Cash (Amount):</label>
+            <input type="number" id="cash" placeholder="Enter cash amount">
+            <label for="businessGoods">Business Goods (Value):</label>
+            <input type="number" id="businessGoods" placeholder="Enter value of business goods">
+            <button onclick="calculateAndSave()">Calculate & Save Zakat</button>
+        </div>
+
+        <div class="section" id="calculation-output-section">
+            <h2>Zakat Calculation</h2>
+            <div class="output">
+                <p><strong>Gold Nisab Threshold:</strong> 7.5 Tolas</p>
+                <p><strong>Silver Nisab Threshold:</strong> 52.5 Tolas</p>
+                <p><strong>Silver Value Nisab Threshold:</strong> <span id="silverNisabValueOutput">0.00</span></p>
+                <hr>
+                <p><strong>Total Zakatable Wealth:</strong> <span id="totalWealthOutput">0.00</span></p>
+                <p><strong>Nisab Status:</strong> <span id="nisabStatusOutput">Not Calculated</span></p>
+                <p><strong>Zakat Due (2.5%):</strong> <span id="zakatDueOutput">0.00</span></p>
+            </div>
+             <div id="nisabAlertOutput" class="alert-output nisab" style="display: none;"></div>
+        </div>
+
+        <div class="section" id="alerts-section">
+            <h2>Alert Settings</h2>
+            <label for="priceChangeThreshold">Price Change Alert Threshold (%):</label>
+            <input type="number" id="priceChangeThreshold" placeholder="e.g., 10 for 10%">
+            <button onclick="saveAlertSettings()">Save Alert Settings</button>
+        </div>
+
+        <div class="section" id="history-section">
+            <h2>Calculation History</h2>
+            <button onclick="clearHistory()">Clear History</button>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Gold (Tola)</th>
+                        <th>Silver (Tola)</th>
+                        <th>Cash</th>
+                        <th>Business Goods</th>
+                        <th>Gold Price</th>
+                        <th>Silver Price</th>
+                        <th>Total Wealth</th>
+                        <th>Zakat Due</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const DB_NAME = 'zakatCalculatorDB';
+        const DB_VERSION = 1;
+        const STORES = {
+            prices: 'prices',
+            holdings: 'holdings',
+            history: 'history',
+            settings: 'settings'
+        };
+        let db;
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORES.prices)) {
+                        db.createObjectStore(STORES.prices);
+                    }
+                    if (!db.objectStoreNames.contains(STORES.holdings)) {
+                        db.createObjectStore(STORES.holdings);
+                    }
+                    if (!db.objectStoreNames.contains(STORES.history)) {
+                        db.createObjectStore(STORES.history, { keyPath: 'id', autoIncrement: true });
+                    }
+                     if (!db.objectStoreNames.contains(STORES.settings)) {
+                        db.createObjectStore(STORES.settings);
+                    }
+                };
+
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    resolve(db);
+                };
+
+                request.onerror = (event) => {
+                    console.error('Database error:', event.target.errorCode);
+                    reject('Database error: ' + event.target.errorCode);
+                };
+            });
+        }
+
+        function dbOperation(storeName, mode, operation) {
+            return new Promise((resolve, reject) => {
+                 if (!db) {
+                    console.error("Database is not initialized.");
+                    return reject("Database is not initialized.");
+                }
+                try {
+                    const transaction = db.transaction(storeName, mode);
+                    const store = transaction.objectStore(storeName);
+                    const request = operation(store);
+
+                    request.onsuccess = (event) => {
+                        resolve(event.target.result);
+                    };
+
+                    request.onerror = (event) => {
+                        console.error('DB operation error:', event.target.error);
+                        reject(event.target.error);
+                    };
+                } catch (error) {
+                     console.error('Transaction error:', error);
+                     reject(error);
+                }
+            });
+        }
+
+        function saveData(storeName, key, data) {
+             return dbOperation(storeName, 'readwrite', (store) => store.put(data, key));
+        }
+
+        function getData(storeName, key) {
+             return dbOperation(storeName, 'readonly', (store) => store.get(key));
+        }
+
+        function getAllData(storeName) {
+             return dbOperation(storeName, 'readonly', (store) => store.getAll());
+        }
+
+         function clearStore(storeName) {
+            return dbOperation(storeName, 'readwrite', (store) => store.clear());
+        }
+
+
+        async function savePrices() {
+            const goldPriceInput = document.getElementById('goldPrice');
+            const silverPriceInput = document.getElementById('silverPrice');
+            const goldPrice = parseFloat(goldPriceInput.value) || 0;
+            const silverPrice = parseFloat(silverPriceInput.value) || 0;
+
+            if (goldPrice <= 0 || silverPrice <= 0) {
+                alert('Please enter valid positive prices for gold and silver.');
+                return;
+            }
+
+            const currentPrices = { goldPrice, silverPrice };
+
+            try {
+                const oldPrices = await getData(STORES.prices, 'current');
+                await saveData(STORES.prices, 'current', currentPrices);
+                await checkPriceChangeAlert(oldPrices, currentPrices);
+                await calculateAndDisplay();
+                 alert('Prices saved successfully.');
+            } catch (error) {
+                console.error('Error saving prices:', error);
+                alert('Failed to save prices.');
+            }
+        }
+
+        async function saveHoldings() {
+             const goldTolas = parseFloat(document.getElementById('goldTolas').value) || 0;
+             const silverTolas = parseFloat(document.getElementById('silverTolas').value) || 0;
+             const cash = parseFloat(document.getElementById('cash').value) || 0;
+             const businessGoods = parseFloat(document.getElementById('businessGoods').value) || 0;
+
+             const currentHoldings = { goldTolas, silverTolas, cash, businessGoods };
+             try {
+                await saveData(STORES.holdings, 'current', currentHoldings);
+                return currentHoldings;
+             } catch(error) {
+                console.error('Error saving holdings:', error);
+                alert('Failed to save holdings.');
+                return null;
+             }
+        }
+
+        async function saveAlertSettings() {
+            const thresholdInput = document.getElementById('priceChangeThreshold');
+            const priceChangeThreshold = parseFloat(thresholdInput.value);
+
+            if (isNaN(priceChangeThreshold) || priceChangeThreshold < 0) {
+                alert('Please enter a valid non-negative percentage threshold.');
+                return;
+            }
+
+            const currentSettings = { priceChangeThreshold };
+            try {
+                await saveData(STORES.settings, 'alerts', currentSettings);
+                 alert('Alert settings saved successfully.');
+            } catch (error) {
+                console.error('Error saving alert settings:', error);
+                 alert('Failed to save alert settings.');
+            }
+        }
+
+        async function calculateAndSave() {
+            const holdings = await saveHoldings();
+            if(holdings) {
+                 const calculationResult = await calculateAndDisplay();
+                 if (calculationResult) {
+                    try {
+                        await addHistoryRecord(calculationResult);
+                        await loadHistory();
+                        alert('Calculation saved to history.');
+                    } catch (error) {
+                         console.error('Error saving history:', error);
+                        alert('Failed to save calculation to history.');
+                    }
+                 }
+            }
+        }
+
+         async function addHistoryRecord(data) {
+            const record = {
+                timestamp: new Date().toISOString(),
+                goldTolas: data.goldTolas,
+                silverTolas: data.silverTolas,
+                cash: data.cash,
+                businessGoods: data.businessGoods,
+                goldPrice: data.goldPrice,
+                silverPrice: data.silverPrice,
+                totalWealth: data.totalWealth,
+                zakatDue: data.zakatDue
+            };
+            await dbOperation(STORES.history, 'readwrite', (store) => store.add(record));
+        }
+
+        async function loadHistory() {
+            try {
+                const historyData = await getAllData(STORES.history);
+                const tableBody = document.getElementById('historyTableBody');
+                tableBody.innerHTML = '';
+                historyData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // Sort descending
+                historyData.forEach(record => {
+                    const row = tableBody.insertRow();
+                    row.insertCell().textContent = new Date(record.timestamp).toLocaleString();
+                    row.insertCell().textContent = record.goldTolas.toFixed(2);
+                    row.insertCell().textContent = record.silverTolas.toFixed(2);
+                    row.insertCell().textContent = record.cash.toFixed(2);
+                    row.insertCell().textContent = record.businessGoods.toFixed(2);
+                    row.insertCell().textContent = record.goldPrice.toFixed(2);
+                    row.insertCell().textContent = record.silverPrice.toFixed(2);
+                    row.insertCell().textContent = record.totalWealth.toFixed(2);
+                    row.insertCell().textContent = record.zakatDue.toFixed(2);
+                });
+            } catch (error) {
+                console.error('Error loading history:', error);
+            }
+        }
+
+         async function clearHistory() {
+            if (confirm('Are you sure you want to clear all calculation history? This cannot be undone.')) {
+                try {
+                    await clearStore(STORES.history);
+                    await loadHistory(); // Refresh the table
+                    alert('History cleared.');
+                } catch (error) {
+                    console.error('Error clearing history:', error);
+                    alert('Failed to clear history.');
+                }
+            }
+        }
+
+
+        async function calculateAndDisplay() {
+             const prices = await getData(STORES.prices, 'current') || { goldPrice: 0, silverPrice: 0 };
+             const holdings = await getData(STORES.holdings, 'current') || { goldTolas: 0, silverTolas: 0, cash: 0, businessGoods: 0 };
+
+             const { goldPrice, silverPrice } = prices;
+             const { goldTolas, silverTolas, cash, businessGoods } = holdings;
+
+             if (goldPrice <= 0 || silverPrice <= 0) {
+                 document.getElementById('nisabStatusOutput').textContent = 'Set valid prices first';
+                 document.getElementById('silverNisabValueOutput').textContent = '0.00';
+                 document.getElementById('totalWealthOutput').textContent = '0.00';
+                 document.getElementById('zakatDueOutput').textContent = '0.00';
+                 return null;
+             }
+
+             const goldValue = goldTolas * goldPrice;
+             const silverValue = silverTolas * silverPrice;
+             const totalWealth = goldValue + silverValue + cash + businessGoods;
+
+             const goldNisabTolas = 7.5;
+             const silverNisabTolas = 52.5;
+             const silverNisabValue = silverNisabTolas * silverPrice;
+
+             let zakatDue = 0;
+             let nisabMet = false;
+             let nisabStatus = 'Below Nisab';
+
+             const isOnlyGold = goldTolas > 0 && silverTolas === 0 && cash === 0 && businessGoods === 0;
+             const isOnlySilver = silverTolas > 0 && goldTolas === 0 && cash === 0 && businessGoods === 0;
+
+             if (isOnlyGold) {
+                 if (goldTolas >= goldNisabTolas) {
+                     zakatDue = goldValue * 0.025;
+                     nisabMet = true;
+                     nisabStatus = `Nisab met (Gold: ${goldTolas.toFixed(2)} >= ${goldNisabTolas} Tolas)`;
+                 }
+             } else if (isOnlySilver) {
+                 if (silverTolas >= silverNisabTolas) {
+                     zakatDue = silverValue * 0.025;
+                     nisabMet = true;
+                     nisabStatus = `Nisab met (Silver: ${silverTolas.toFixed(2)} >= ${silverNisabTolas} Tolas)`;
+                 }
+             } else {
+                 // Mixed assets or only cash/business goods
+                 if (totalWealth >= silverNisabValue) {
+                     zakatDue = totalWealth * 0.025;
+                     nisabMet = true;
+                     nisabStatus = `Nisab met (Total Wealth: ${totalWealth.toFixed(2)} >= Silver Nisab Value: ${silverNisabValue.toFixed(2)})`;
+                 }
+             }
+
+
+             document.getElementById('silverNisabValueOutput').textContent = silverNisabValue.toFixed(2);
+             document.getElementById('totalWealthOutput').textContent = totalWealth.toFixed(2);
+             document.getElementById('nisabStatusOutput').textContent = nisabStatus;
+             document.getElementById('zakatDueOutput').textContent = zakatDue.toFixed(2);
+
+             checkNisabAlert(nisabMet, nisabStatus);
+
+             return { goldTolas, silverTolas, cash, businessGoods, goldPrice, silverPrice, totalWealth, zakatDue, nisabMet };
+        }
+
+        async function checkNisabAlert(nisabMet, status) {
+            const alertDiv = document.getElementById('nisabAlertOutput');
+            if (nisabMet) {
+                alertDiv.textContent = `Alert: Zakat is due! ${status}`;
+                alertDiv.style.display = 'block';
+            } else {
+                 alertDiv.style.display = 'none';
+            }
+        }
+
+        async function checkPriceChangeAlert(oldPrices, newPrices) {
+            const settings = await getData(STORES.settings, 'alerts') || { priceChangeThreshold: null };
+            const threshold = settings.priceChangeThreshold;
+            const alertDiv = document.getElementById('priceAlertOutput');
+            alertDiv.style.display = 'none';
+            alertDiv.innerHTML = ''; // Clear previous alerts
+
+            if (threshold === null || threshold < 0 || !oldPrices || oldPrices.goldPrice === 0 || oldPrices.silverPrice === 0 ) {
+                return; // No threshold set, or no old prices to compare
+            }
+
+            let alerts = [];
+            const goldChange = Math.abs(newPrices.goldPrice - oldPrices.goldPrice) / oldPrices.goldPrice * 100;
+            const silverChange = Math.abs(newPrices.silverPrice - oldPrices.silverPrice) / oldPrices.silverPrice * 100;
+
+            if (goldChange >= threshold) {
+                 alerts.push(`Gold price changed by ${goldChange.toFixed(1)}% (Threshold: ${threshold}%)`);
+            }
+            if (silverChange >= threshold) {
+                 alerts.push(`Silver price changed by ${silverChange.toFixed(1)}% (Threshold: ${threshold}%)`);
+            }
+
+            if(alerts.length > 0) {
+                alertDiv.innerHTML = '<strong>Price Change Alert:</strong><br>' + alerts.join('<br>');
+                alertDiv.style.display = 'block';
+            }
+
+        }
+
+
+        async function loadInitialData() {
+             try {
+                const prices = await getData(STORES.prices, 'current');
+                if (prices) {
+                    document.getElementById('goldPrice').value = prices.goldPrice || '';
+                    document.getElementById('silverPrice').value = prices.silverPrice || '';
+                }
+
+                const holdings = await getData(STORES.holdings, 'current');
+                if (holdings) {
+                    document.getElementById('goldTolas').value = holdings.goldTolas || '';
+                    document.getElementById('silverTolas').value = holdings.silverTolas || '';
+                    document.getElementById('cash').value = holdings.cash || '';
+                    document.getElementById('businessGoods').value = holdings.businessGoods || '';
+                }
+
+                 const settings = await getData(STORES.settings, 'alerts');
+                 if (settings && settings.priceChangeThreshold !== undefined) {
+                    document.getElementById('priceChangeThreshold').value = settings.priceChangeThreshold;
+                 }
+
+                await calculateAndDisplay();
+                await loadHistory();
+
+             } catch (error) {
+                 console.error('Error loading initial data:', error);
+             }
+        }
+
+
+        window.onload = async () => {
+            try {
+                await initDB();
+                await loadInitialData();
+            } catch (error) {
+                 console.error("Initialization failed:", error);
+                 alert("Failed to initialize the application. Please ensure IndexedDB is supported and not blocked.")
+            }
+
+            // Add listeners to recalculate instantly on input change
+            document.getElementById('goldTolas').addEventListener('input', calculateAndDisplay);
+            document.getElementById('silverTolas').addEventListener('input', calculateAndDisplay);
+            document.getElementById('cash').addEventListener('input', calculateAndDisplay);
+            document.getElementById('businessGoods').addEventListener('input', calculateAndDisplay);
+             document.getElementById('goldPrice').addEventListener('input', calculateAndDisplay);
+            document.getElementById('silverPrice').addEventListener('input', calculateAndDisplay);
+        };
+
+    </script>
+</body>
+</html>

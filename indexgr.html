@@ -1,0 +1,247 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>زکوٰۃ کیلکولیٹر</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&display=swap" rel="stylesheet">
+<style>
+body{font-family:'Noto Nastaliq Urdu',sans-serif;background:#f4f4f4;margin:0;padding:10px;direction:rtl}
+h1,h2{text-align:center;color:#2c3e50}
+.container{max-width:800px;margin:auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1)}
+input,select,button{width:100%;padding:10px;margin:5px 0;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-family:'Noto Nastaliq Urdu'}
+button{background:#27ae60;color:#fff;cursor:pointer}
+button:hover{background:#219653}
+table{width:100%;border-collapse:collapse;margin:10px 0}
+th,td{border:1px solid #ddd;padding:8px;text-align:right}
+th{background:#27ae60;color:#fff}
+.alert{background:#f39c12;padding:10px;margin:10px 0;border-radius:5px;text-align:center}
+@media (max-width:600px){.container{padding:10px} input,select,button{font-size:16px}}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>زکوٰۃ کیلکولیٹر</h1>
+<h2>اثاثوں کی تفصیلات</h2>
+<div>
+<label>سونے کی مقدار:</label>
+<input type="number" id="goldAmount" step="any" placeholder="گرام یا تولہ">
+<select id="goldUnit"><option value="grams">گرام</option><option value="tolas">تولہ</option></select>
+</div>
+<div>
+<label>سونے کی قیمت فی گرام:</label>
+<input type="number" id="goldPrice" step="any" placeholder="روپے فی گرام">
+</div>
+<div>
+<label>چاندی کی مقدار:</label>
+<input type="number" id="silverAmount" step="any" placeholder="گرام یا تولہ">
+<select id="silverUnit"><option value="grams">گرام</option><option value="tolas">تولہ</option></select>
+</div>
+<div>
+<label>چاندی کی قیمت فی گرام:</label>
+<input type="number" id="silverPrice" step="any" placeholder="روپے فی گرام">
+</div>
+<div>
+<label>نقد رقم:</label>
+<input type="number" id="cash" step="any" placeholder="روپے">
+</div>
+<div>
+<label>کاروباری سامان کی قیمت:</label>
+<input type="number" id="businessGoods" step="any" placeholder="روپے">
+</div>
+<div>
+<label>زکوٰۃ کی سالانہ تاریخ:</label>
+<input type="date" id="zakatDate">
+</div>
+<button onclick="calculateZakat()">زکوٰۃ کا حساب لگائیں</button>
+<button onclick="setPriceAlert()">قیمت الرٹ سیٹ کریں</button>
+<div id="result"></div>
+<div id="alertBanner" class="alert" style="display:none"></div>
+<h2>زکوٰۃ کی تاریخ</h2>
+<table id="historyTable">
+<thead><tr><th>تاریخ</th><th>سونے کی مقدار</th><th>چاندی کی مقدار</th><th>نقد</th><th>کاروباری سامان</th><th>زکوٰۃ</th></tr></thead>
+<tbody></tbody>
+</table>
+</div>
+<script>
+let db;
+const request=indexedDB.open("ZakatDB",1);
+request.onupgradeneeded=function(event){
+db=event.target.result;
+db.createObjectStore("assets",{keyPath:"id",autoIncrement:true});
+db.createObjectStore("history",{keyPath:"id",autoIncrement:true});
+db.createObjectStore("settings",{keyPath:"id"});
+};
+request.onsuccess=function(event){
+db=event.target.result;
+loadAssets();
+checkZakatReminder();
+};
+function saveAssets(data){
+const tx=db.transaction(["assets","settings"],"readwrite");
+tx.objectStore("assets").clear();
+tx.objectStore("assets").add(data);
+tx.objectStore("settings").put({id:"prices",goldPrice:data.goldPrice,silverPrice:data.silverPrice});
+}
+function loadAssets(){
+const tx=db.transaction(["assets"],"readonly");
+tx.objectStore("assets").getAll().onsuccess=function(event){
+const data=event.target.result[0];
+if(data){
+document.getElementById("goldAmount").value=data.goldAmount||'';
+document.getElementById("goldUnit").value=data.goldUnit||'grams';
+document.getElementById("goldPrice").value=data.goldPrice||'';
+document.getElementById("silverAmount").value=data.silverAmount||'';
+document.getElementById("silverUnit").value=data.silverUnit||'grams';
+document.getElementById("silverPrice").value=data.silverPrice||'';
+document.getElementById("cash").value=data.cash||'';
+document.getElementById("businessGoods").value=data.businessGoods||'';
+document.getElementById("zakatDate").value=data.zakatDate||'';
+}
+};
+loadHistory();
+}
+function saveHistory(data){
+const tx=db.transaction(["history"],"readwrite");
+tx.objectStore("history").add(data);
+loadHistory();
+}
+function loadHistory(){
+const tx=db.transaction(["history"],"readonly");
+tx.objectStore("history").getAll().onsuccess=function(event){
+const tbody=document.querySelector("#historyTable tbody");
+tbody.innerHTML='';
+event.target.result.forEach(item=>{
+const row=document.createElement("tr");
+row.innerHTML=`
+<td>${item.date}</td>
+<td>${item.goldAmount} ${item.goldUnit}</td>
+<td>${item.silverAmount} ${item.silverUnit}</td>
+<td>${item.cash}</td>
+<td>${item.businessGoods}</td>
+<td>${item.zakat}</td>`;
+tbody.appendChild(row);
+});
+};
+}
+function calculateZakat(){
+const goldAmount=parseFloat(document.getElementById("goldAmount").value)||0;
+const goldUnit=document.getElementById("goldUnit").value;
+const goldPrice=parseFloat(document.getElementById("goldPrice").value)||0;
+const silverAmount=parseFloat(document.getElementById("silverAmount").value)||0;
+const silverUnit=document.getElementById("silverUnit").value;
+const silverPrice=parseFloat(document.getElementById("silverPrice").value)||0;
+const cash=parseFloat(document.getElementById("cash").value)||0;
+const businessGoods=parseFloat(document.getElementById("businessGoods").value)||0;
+const zakatDate=document.getElementById("zakatDate").value;
+const goldGrams=goldUnit==="tolas"?goldAmount*11.664:goldAmount;
+const silverGrams=silverUnit==="tolas"?silverAmount*11.664:silverAmount;
+const goldValue=goldGrams*goldPrice;
+const silverValue=silverGrams*silverPrice;
+const totalWealth=goldValue+silverValue+cash+businessGoods;
+const nisabSilver=612.36*silverPrice;
+let zakat=0;
+if(goldGrams>=87.48||silverGrams>=612.36||totalWealth>=nisabSilver){
+zakat=totalWealth*0.025;
+}
+document.getElementById("result").innerHTML=`
+کل اثاثوں کی قیمت: ${totalWealth.toFixed(2)} روپے<br>
+نصاب (چاندی کے حساب سے): ${nisabSilver.toFixed(2)} روپے<br>
+زکوٰۃ کی رقم: ${zakat.toFixed(2)} روپے`;
+const data={
+goldAmount,goldUnit,goldPrice,
+silverAmount,silverUnit,silverPrice,
+cash,businessGoods,zakatDate
+};
+saveAssets(data);
+saveHistory({
+date:new Date().toLocaleDateString('ur'),
+goldAmount:`${goldAmount} ${goldUnit}`,
+silverAmount:`${silverAmount} ${silverUnit}`,
+cash,businessGoods,zakat:zakat.toFixed(2)
+});
+checkPriceAlerts(goldPrice,silverPrice);
+}
+function setPriceAlert(){
+const goldPrice=parseFloat(document.getElementById("goldPrice").value)||0;
+const silverPrice=parseFloat(document.getElementById("silverPrice").value)||0;
+const tx=db.transaction(["settings"],"readwrite");
+tx.objectStore("settings").put({id:"alertPrices",goldPrice,silverPrice});
+alert("قیمت الرٹ سیٹ کیا گیا!");
+}
+function checkPriceAlerts(newGoldPrice,newSilverPrice){
+const tx=db.transaction(["settings"],"readonly");
+tx.objectStore("settings").get("alertPrices").onsuccess=function(event){
+const data=event.target.result;
+if(data){
+if(Math.abs(data.goldPrice-newGoldPrice)>data.goldPrice*0.05||Math.abs(data.silverPrice-newSilverPrice)>data.silverPrice*0.05){
+alert("سونے یا چاندی کی قیمت میں نمایاں تبدیلی!");
+}
+}
+};
+}
+function checkZakatReminder(){
+const zakatDate=document.getElementById("zakatDate").value;
+if(zakatDate){
+const today=new Date();
+const zakatDue=new Date(zakatDate);
+zakatDue.setFullYear(today.getFullYear());
+if(today.getMonth()===zakatDue.getMonth()&&today.getDate()===zakatDue.getDate()){
+const banner=document.getElementById("alertBanner");
+banner.style.display="block";
+banner.innerHTML="زکوٰۃ ادائیگی کا وقت ہو گیا ہے!";
+if(Notification.permission==="granted"){
+new Notification("زکوٰۃ کی ادائیگی کا وقت");
+}else if(Notification.permission!=="denied"){
+Notification.requestPermission().then(permission=>{
+if(permission==="granted"){
+new Notification("زکوٰۃ کی ادائیگی کا وقت");
+}
+});
+}
+}
+}
+setTimeout(checkZakatReminder,24*60*60*1000);
+}
+</script>
+</body>
+</html>

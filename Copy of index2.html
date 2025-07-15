@@ -1,0 +1,878 @@
+
+<!DOCTYPE html>
+
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>زکوٰۃ کیلکولیٹر</title>
+    <style>
+        :root {
+            --primary-color: #1e5631;
+            --secondary-color: #e8f5e9;
+            --accent-color: #4caf50;
+            --text-color: #333;
+            --light-gray: #f5f5f5;
+            --border-color: #ddd;
+        }
+        
+        body {
+            font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--light-gray);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 15px;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin: 0;
+            font-size: 2.2rem;
+        }
+        
+        h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+            font-size: 1.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .form-section {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 1.05rem;
+        }
+        
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            background-color: #fafafa;
+        }
+        
+        input[type="number"]:focus {
+            border-color: var(--accent-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+        
+        .input-group {
+            display: flex;
+            flex: 1;
+        }
+        
+        select {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 0 6px 6px 0;
+            background-color: #f9f9f9;
+            font-size: 1rem;
+            width: auto;
+        }
+        
+        .input-group input {
+            border-radius: 6px 0 0 6px;
+            border-left: 1px solid var(--border-color);
+        }
+        
+        .unit-label {
+            display: inline-block;
+            padding: 12px;
+            background-color: #f3f3f3;
+            border: 1px solid var(--border-color);
+            border-right: none;
+            border-radius: 0 6px 6px 0;
+            font-weight: bold;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background-color: #154a23;
+        }
+        
+        .secondary-button {
+            background-color: #6c757d;
+        }
+        
+        .danger-button {
+            background-color: #dc3545;
+        }
+        
+        .danger-button:hover {
+            background-color: #bb2d3b;
+        }
+        
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: var(--secondary-color);
+            border-radius: 8px;
+            border-right: 5px solid var(--primary-color);
+        }
+        
+        .result h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+        
+        .result .amount {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            margin-left: 5px;
+        }
+        
+        .tab:hover {
+            color: var(--primary-color);
+        }
+        
+        .tab.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        
+        th, td {
+            border: 1px solid #eee;
+            padding: 12px;
+            text-align: right;
+        }
+        
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .info-box {
+            background-color: #e3f2fd;
+            border-right: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+        }
+        
+        .info-box h3 {
+            margin-top: 0;
+            color: #0d47a1;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .nisab-info {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .nisab-card {
+            flex: 1;
+            min-width: 200px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .nisab-card h4 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                margin: 10px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+                margin: 5px 0;
+            }
+            
+            .nisab-info {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>زکوٰۃ کیلکولیٹر</h1>
+            <p class="subtitle">اپنی زکوٰۃ کا صحیح حساب کریں</p>
+        </header>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('calculator')">زکوٰۃ کیلکولیٹر</div>
+            <div class="tab" onclick="showTab('history')">ریکارڈز</div>
+        </div>
+        
+        <div id="calculator" class="tab-content active">
+            <div class="info-box">
+                <h3>زکوٰۃ کے اصول</h3>
+                <p>زکوٰۃ 2.5٪ کی شرح سے واجب ہوتی ہے اگر آپ کے پاس:</p>
+                <ul>
+                    <li>صرف سونا 7.5 تولے یا اس سے زیادہ ہو</li>
+                    <li>صرف چاندی 52.5 تولے یا اس سے زیادہ ہو</li>
+                    <li>سونا، چاندی، نقد رقم، اور تجارتی اثاثوں کی مجموعی قیمت 52.5 تولے چاندی کی قیمت سے زیادہ یا اس کے برابر ہو</li>
+                </ul>
+            </div>
+            
+            <div class="form-section">
+                <h2 class="section-title">قیمتیں اپڈیٹ کریں</h2>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1; margin-left: 10px;">
+                        <label>سونے کی قیمت (فی تولہ)</label>
+                        <div class="input-group">
+                            <input type="number" id="goldRate" value="200000" min="0">
+                            <span class="unit-label">پاکستانی روپے</span>
+                        </div>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>چاندی کی قیمت (فی تولہ)</label>
+                        <div class="input-group">
+                            <input type="number" id="silverRate" value="3000" min="0">
+                            <span class="unit-label">پاکستانی روپے</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h2 class="section-title">اثاثوں کی تفصیلات</h2>
+                
+                <div class="form-group">
+                    <label>سونا</label>
+                    <div class="form-row">
+                        <div class="input-group" style="flex: 3;">
+                            <input type="number" id="goldAmount" value="0" min="0" step="0.01">
+                            <select id="goldUnit">
+                                <option value="tola">تولے</option>
+                                <option value="gram">گرام</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1; text-align: center; padding: 0 10px; font-weight: bold;">= </div>
+                        <div style="flex: 2;">
+                            <div id="goldValue" style="padding: 12px; background: #f9f9f9; border-radius: 6px; font-weight: bold;">0 پاکستانی روپے</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>چاندی</label>
+                    <div class="form-row">
+                        <div class="input-group" style="flex: 3;">
+                            <input type="number" id="silverAmount" value="0" min="0" step="0.01">
+                            <select id="silverUnit">
+                                <option value="tola">تولے</option>
+                                <option value="gram">گرام</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1; text-align: center; padding: 0 10px; font-weight: bold;">= </div>
+                        <div style="flex: 2;">
+                            <div id="silverValue" style="padding: 12px; background: #f9f9f9; border-radius: 6px; font-weight: bold;">0 پاکستانی روپے</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>نقد رقم</label>
+                    <div class="input-group">
+                        <input type="number" id="cashAmount" value="0" min="0">
+                        <span class="unit-label">پاکستانی روپے</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>تجارتی اثاثے</label>
+                    <div class="input-group">
+                        <input type="number" id="businessAssets" value="0" min="0">
+                        <span class="unit-label">پاکستانی روپے</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="nisab-info">
+                <div class="nisab-card">
+                    <h4>سونے کا نصاب</h4>
+                    <p>7.5 تولے = <span id="goldNisabValue">0</span> پاکستانی روپے</p>
+                </div>
+                <div class="nisab-card">
+                    <h4>چاندی کا نصاب</h4>
+                    <p>52.5 تولے = <span id="silverNisabValue">0</span> پاکستانی روپے</p>
+                </div>
+                <div class="nisab-card">
+                    <h4>کل اثاثے</h4>
+                    <p><span id="totalAssetsValue">0</span> پاکستانی روپے</p>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button onclick="calculateZakat()" style="flex: 2;">زکوٰۃ حساب کریں</button>
+                <button onclick="resetForm()" class="secondary-button" style="flex: 1;">فارم ریسیٹ کریں</button>
+            </div>
+            
+            <div id="result" class="result" style="display: none;"></div>
+        </div>
+        
+        <div id="history" class="tab-content">
+            <h2>زکوٰۃ ریکارڈز</h2>
+            <div id="historyList"></div>
+        </div>
+    </div>
+    
+    <script>
+        let db;
+        const DB_NAME = 'ZakatDB';
+        const STORE_NAME = 'zakatRecords';
+        
+        const initDB = () => {
+            const request = indexedDB.open(DB_NAME, 1);
+            
+            request.onupgradeneeded = function(event) {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    const store = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                    store.createIndex('date', 'date', { unique: false });
+                }
+            };
+            
+            request.onsuccess = function(event) {
+                db = event.target.result;
+                checkZakatReminders();
+                loadHistory();
+                updateNisabValues();
+                setupListeners();
+            };
+            
+            request.onerror = function(event) {
+                console.error("Database error:", event.target.error);
+                alert("ڈیٹابیس ایرر: زکوٰۃ کی تاریخ محفوظ نہیں کی جا سکتی۔");
+            };
+        };
+        
+        const setupListeners = () => {
+            document.getElementById('goldRate').addEventListener('input', updateNisabValues);
+            document.getElementById('silverRate').addEventListener('input', updateNisabValues);
+            document.getElementById('goldAmount').addEventListener('input', updateAssetValues);
+            document.getElementById('goldUnit').addEventListener('change', updateAssetValues);
+            document.getElementById('silverAmount').addEventListener('input', updateAssetValues);
+            document.getElementById('silverUnit').addEventListener('change', updateAssetValues);
+            document.getElementById('cashAmount').addEventListener('input', updateAssetValues);
+            document.getElementById('businessAssets').addEventListener('input', updateAssetValues);
+        };
+        
+        const updateNisabValues = () => {
+            const goldRate = parseFloat(document.getElementById('goldRate').value) || 0;
+            const silverRate = parseFloat(document.getElementById('silverRate').value) || 0;
+            
+            const goldNisabValue = 7.5 * goldRate;
+            const silverNisabValue = 52.5 * silverRate;
+            
+            document.getElementById('goldNisabValue').textContent = goldNisabValue.toLocaleString();
+            document.getElementById('silverNisabValue').textContent = silverNisabValue.toLocaleString();
+            
+            updateAssetValues();
+        };
+        
+        const updateAssetValues = () => {
+            const goldRate = parseFloat(document.getElementById('goldRate').value) || 0;
+            const silverRate = parseFloat(document.getElementById('silverRate').value) || 0;
+            
+            let goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
+            const goldUnit = document.getElementById('goldUnit').value;
+            
+            let silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
+            const silverUnit = document.getElementById('silverUnit').value;
+            
+            if (goldUnit === 'gram') {
+                goldAmount = goldAmount / 11.664;
+            }
+            
+            if (silverUnit === 'gram') {
+                silverAmount = silverAmount / 11.664;
+            }
+            
+            const goldValue = goldAmount * goldRate;
+            const silverValue = silverAmount * silverRate;
+            
+            const cashAmount = parseFloat(document.getElementById('cashAmount').value) || 0;
+            const businessAssets = parseFloat(document.getElementById('businessAssets').value) || 0;
+            
+            const totalAssets = goldValue + silverValue + cashAmount + businessAssets;
+            
+            document.getElementById('goldValue').textContent = goldValue.toLocaleString() + ' پاکستانی روپے';
+            document.getElementById('silverValue').textContent = silverValue.toLocaleString() + ' پاکستانی روپے';
+            document.getElementById('totalAssetsValue').textContent = totalAssets.toLocaleString();
+        };
+        
+        const showTab = (tabId) => {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.tab[onclick="showTab('${tabId}')"]`).classList.add('active');
+            
+            if (tabId === 'history') {
+                loadHistory();
+            }
+        };
+        
+        const calculateZakat = () => {
+            const goldRate = parseFloat(document.getElementById('goldRate').value) || 0;
+            const silverRate = parseFloat(document.getElementById('silverRate').value) || 0;
+            
+            let goldAmount = parseFloat(document.getElementById('goldAmount').value) || 0;
+            const goldUnit = document.getElementById('goldUnit').value;
+            
+            let silverAmount = parseFloat(document.getElementById('silverAmount').value) || 0;
+            const silverUnit = document.getElementById('silverUnit').value;
+            
+            const cashAmount = parseFloat(document.getElementById('cashAmount').value) || 0;
+            const businessAssets = parseFloat(document.getElementById('businessAssets').value) || 0;
+            
+            if (goldUnit === 'gram') {
+                goldAmount = goldAmount / 11.664;
+            }
+            
+            if (silverUnit === 'gram') {
+                silverAmount = silverAmount / 11.664;
+            }
+            
+            const goldValue = goldAmount * goldRate;
+            const silverValue = silverAmount * silverRate;
+            const totalAssets = goldValue + silverValue + cashAmount + businessAssets;
+            
+            const goldNisab = 7.5 * goldRate;
+            const silverNisab = 52.5 * silverRate;
+            
+            let zakatDue = 0;
+            let zakatExplanation = '';
+            let isZakatDue = false;
+            
+            if (goldAmount > 0 && silverAmount === 0 && cashAmount === 0 && businessAssets === 0) {
+                if (goldAmount >= 7.5) {
+                    isZakatDue = true;
+                    zakatDue = goldValue * 0.025;
+                    zakatExplanation = 'آپ کے پاس صرف سونا ہے جو 7.5 تولے کے نصاب سے زیادہ ہے، لہٰذا زکوٰۃ واجب ہے۔';
+                } else {
+                    zakatExplanation = 'آپ کے پاس صرف سونا ہے جو 7.5 تولے کے نصاب سے کم ہے، لہٰذا زکوٰۃ واجب نہیں ہے۔';
+                }
+            } else if (silverAmount > 0 && goldAmount === 0 && cashAmount === 0 && businessAssets === 0) {
+                if (silverAmount >= 52.5) {
+                    isZakatDue = true;
+                    zakatDue = silverValue * 0.025;
+                    zakatExplanation = 'آپ کے پاس صرف چاندی ہے جو 52.5 تولے کے نصاب سے زیادہ ہے، لہٰذا زکوٰۃ واجب ہے۔';
+                } else {
+                    zakatExplanation = 'آپ کے پاس صرف چاندی ہے جو 52.5 تولے کے نصاب سے کم ہے، لہٰذا زکوٰۃ واجب نہیں ہے۔';
+                }
+            } else {
+                if (totalAssets >= silverNisab) {
+                    isZakatDue = true;
+                    zakatDue = totalAssets * 0.025;
+                    zakatExplanation = 'آپ کے مختلف اثاثوں کی مجموعی قیمت چاندی کے نصاب (52.5 تولے) سے زیادہ ہے، لہٰذا زکوٰۃ واجب ہے۔';
+                } else {
+                    zakatExplanation = 'آپ کے مختلف اثاثوں کی مجموعی قیمت چاندی کے نصاب (52.5 تولے) سے کم ہے، لہٰذا زکوٰۃ واجب نہیں ہے۔';
+                }
+            }
+            
+            const resultElement = document.getElementById('result');
+            resultElement.style.display = 'block';
+            
+            let resultHTML = `
+                <h3>زکوٰۃ کا حساب</h3>
+                <div class="nisab-info" style="margin-top: 15px;">
+                    <div class="nisab-card">
+                        <h4>آپ کے اثاثے</h4>
+                        <p>سونا: ${goldAmount.toFixed(2)} تولے (${goldValue.toLocaleString()} روپے)</p>
+                        <p>چاندی: ${silverAmount.toFixed(2)} تولے (${silverValue.toLocaleString()} روپے)</p>
+                        <p>نقد رقم: ${cashAmount.toLocaleString()} روپے</p>
+                        <p>تجارتی اثاثے: ${businessAssets.toLocaleString()} روپے</p>
+                        <p style="font-weight: bold; margin-top: 10px;">کل: ${totalAssets.toLocaleString()} روپے</p>
+                    </div>
+                    <div class="nisab-card">
+                        <h4>نصاب کی معلومات</h4>
+                        <p>سونے کا نصاب (7.5 تولے): ${goldNisab.toLocaleString()} روپے</p>
+                        <p>چاندی کا نصاب (52.5 تولے): ${silverNisab.toLocaleString()} روپے</p>
+                    </div>
+                </div>
+                
+                <div style="background-color: ${isZakatDue ? '#c8e6c9' : '#ffebee'}; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                    <h4 style="margin-top: 0; color: ${isZakatDue ? '#2e7d32' : '#c62828'};">نتیجہ:</h4>
+                    <p>${zakatExplanation}</p>
+                    ${isZakatDue ? `<p style="font-size: 1.2rem; font-weight: bold;">واجب زکوٰۃ (2.5%): <span class="amount">${zakatDue.toLocaleString()}</span> پاکستانی روپے</p>` : ''}
+                </div>
+            `;
+            
+            if (isZakatDue) {
+                resultHTML += `
+                <div class="button-group" style="margin-top: 20px;">
+                    <button onclick="saveZakatRecord(${totalAssets}, ${zakatDue})">اس حساب کو محفوظ کریں</button>
+                </div>`;
+            }
+            
+            resultElement.innerHTML = resultHTML;
+        };
+        
+        const saveZakatRecord = (totalAssets, zakatAmount) => {
+            if (!db) {
+                alert("ڈیٹابیس لوڈ نہیں ہوا۔ براہ کرم دوبارہ کوشش کریں۔");
+                return;
+            }
+            
+            const record = {
+                date: new Date(),
+                totalAssets: totalAssets,
+                zakatAmount: zakatAmount,
+                goldRate: parseFloat(document.getElementById('goldRate').value) || 0,
+                silverRate: parseFloat(document.getElementById('silverRate').value) || 0,
+                goldAmount: parseFloat(document.getElementById('goldAmount').value) || 0,
+                goldUnit: document.getElementById('goldUnit').value,
+                silverAmount: parseFloat(document.getElementById('silverAmount').value) || 0,
+                silverUnit: document.getElementById('silverUnit').value,
+                cashAmount: parseFloat(document.getElementById('cashAmount').value) || 0,
+                businessAssets: parseFloat(document.getElementById('businessAssets').value) || 0
+            };
+            
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.add(record);
+            
+            request.onsuccess = function() {
+                alert("زکوٰۃ کا ریکارڈ کامیابی سے محفوظ ہو گیا ہے۔");
+                showTab('history');
+            };
+            
+            request.onerror = function() {
+                alert("ریکارڈ محفوظ کرنے میں خرابی آگئی۔");
+            };
+        };
+        
+        const loadHistory = () => {
+            if (!db) return;
+            
+            const transaction = db.transaction([STORE_NAME], 'readonly');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.getAll();
+            
+            request.onsuccess = function(event) {
+                const records = event.target.result;
+                const historyList = document.getElementById('historyList');
+                
+                if (records.length === 0) {
+                    historyList.innerHTML = `
+                        <div class="empty-state">
+                            <div style="font-size: 3rem; margin-bottom: 15px;">📋</div>
+                            <p>آپ کا زکوٰۃ ریکارڈ خالی ہے</p>
+                            <p>زکوٰۃ کیلکولیٹر استعمال کرکے اپنا پہلا حساب شامل کریں</p>
+                            <button onclick="showTab('calculator')">کیلکولیٹر پر جائیں</button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = `
+                    <table>
+                        <tr>
+                            <th>تاریخ</th>
+                            <th>کل اثاثے</th>
+                            <th>زکوٰۃ کی رقم</th>
+                            <th>تفصیلات</th>
+                            <th>کارروائی</th>
+                        </tr>
+                `;
+                
+                records.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(record => {
+                    const date = new Date(record.date).toLocaleDateString('ur-PK');
+                    html += `
+                        <tr>
+                            <td>${date}</td>
+                            <td>${record.totalAssets.toLocaleString()} روپے</td>
+                            <td>${record.zakatAmount.toLocaleString()} روپے</td>
+                            <td><button onclick="showRecordDetails(${record.id})">دیکھیں</button></td>
+                            <td><button class="danger-button" onclick="deleteRecord(${record.id})">حذف کریں</button></td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</table>';
+                historyList.innerHTML = html;
+            };
+            
+            request.onerror = function() {
+                alert("تاریخ لوڈ کرنے میں خرابی آگئی۔");
+            };
+        };
+        
+        const showRecordDetails = (id) => {
+            if (!db) return;
+            
+            const transaction = db.transaction([STORE_NAME], 'readonly');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.get(id);
+            
+            request.onsuccess = function(event) {
+                const record = event.target.result;
+                if (!record) {
+                    alert("ریکارڈ نہیں ملا۔");
+                    return;
+                }
+                
+                let goldAmount = record.goldAmount;
+                if (record.goldUnit === 'gram') {
+                    goldAmount = goldAmount / 11.664;
+                }
+                
+                let silverAmount = record.silverAmount;
+                if (record.silverUnit === 'gram') {
+                    silverAmount = silverAmount / 11.664;
+                }
+                
+                const goldValue = goldAmount * record.goldRate;
+                const silverValue = silverAmount * record.silverRate;
+                
+                const date = new Date(record.date).toLocaleDateString('ur-PK');
+                const time = new Date(record.date).toLocaleTimeString('ur-PK');
+                
+                const detailsHTML = `
+                    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1000;">
+                        <div style="background: white; width: 90%; max-width: 500px; border-radius: 10px; padding: 20px; max-height: 90vh; overflow-y: auto;">
+                            <h3 style="margin-top: 0;">زکوٰۃ کا تفصیلی ریکارڈ</h3>
+                            <p><strong>تاریخ:</strong> ${date} - ${time}</p>
+                            
+                            <div style="margin: 15px 0; padding: 10px; background: #f9f9f9; border-radius: 6px;">
+                                <h4 style="margin-top: 0;">اثاثے</h4>
+                                <p>سونا: ${record.goldAmount} ${record.goldUnit === 'tola' ? 'تولے' : 'گرام'} (${goldValue.toLocaleString()} روپے)</p>
+                                <p>چاندی: ${record.silverAmount} ${record.silverUnit === 'tola' ? 'تولے' : 'گرام'} (${silverValue.toLocaleString()} روپے)</p>
+                                <p>نقد رقم: ${record.cashAmount.toLocaleString()} روپے</p>
+                                <p>تجارتی اثاثے: ${record.businessAssets.toLocaleString()} روپے</p>
+                                <p><strong>کل اثاثے:</strong> ${record.totalAssets.toLocaleString()} روپے</p>
+                            </div>
+                            
+                            <div style="margin: 15px 0; padding: 10px; background: #e8f5e9; border-radius: 6px;">
+                                <h4 style="margin-top: 0;">زکوٰۃ</h4>
+                                <p>سونے کا نصاب (7.5 تولے): ${(7.5 * record.goldRate).toLocaleString()} روپے</p>
+                                <p>چاندی کا نصاب (52.5 تولے): ${(52.5 * record.silverRate).toLocaleString()} روپے</p>
+                                <p><strong>واجب زکوٰۃ (2.5%):</strong> ${record.zakatAmount.toLocaleString()} روپے</p>
+                            </div>
+                            
+                            <div style="text-align: center; margin-top: 15px;">
+                                <button onclick="this.parentNode.parentNode.parentNode.remove()">بند کریں</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                const detailsElement = document.createElement('div');
+                detailsElement.innerHTML = detailsHTML;
+                document.body.appendChild(detailsElement);
+            };
+            
+            request.onerror = function() {
+                alert("ریکارڈ حاصل کرنے میں خرابی آگئی۔");
+            };
+        };
+        
+        const deleteRecord = (id) => {
+            if (!confirm("کیا آپ واقعی اس ریکارڈ کو حذف کرنا چاہتے ہیں؟")) return;
+            
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.delete(id);
+            
+            request.onsuccess = function() {
+                alert("ریکارڈ کامیابی سے حذف کر دیا گیا ہے۔");
+                loadHistory();
+            };
+            
+            request.onerror = function() {
+                alert("ریکارڈ حذف کرنے میں خرابی آگئی۔");
+            };
+        };
+        
+        const checkZakatReminders = () => {
+            if (!db) return;
+            
+            const transaction = db.transaction([STORE_NAME], 'readonly');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.getAll();
+            
+            request.onsuccess = function(event) {
+                const records = event.target.result;
+                const now = new Date();
+                
+                if (records.length > 0) {
+                    records.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    const latestRecord = records;
+                    const recordDate = new Date(latestRecord.date);
+                    const oneYearLater = new Date(recordDate);
+                    oneYearLater.setFullYear(recordDate.getFullYear() + 1);
+                    
+                    if (now >= oneYearLater) {
+                        const datePak = recordDate.toLocaleDateString('ur-PK');
+                        const daysOver = Math.floor((now - oneYearLater) / (1000 * 60 * 60 * 24));
+                        
+                        setTimeout(() => {
+                            alert(`یاددہانی: آپ نے ${datePak} کو زکوٰۃ کا حساب کیا تھا۔ اس کے بعد سے ${daysOver} دن گزر چکے ہیں۔ براہ کرم نیا حساب کریں۔`);
+                        }, 1000);
+                    }
+                }
+            };
+        };
+        
+        const resetForm = () => {
+            document.getElementById('goldAmount').value = 0;
+            document.getElementById('silverAmount').value = 0;
+            document.getElementById('cashAmount').value = 0;
+            document.getElementById('businessAssets').value = 0;
+            document.getElementById('goldUnit').value = 'tola';
+            document.getElementById('silverUnit').value = 'tola';
+            document.getElementById('result').style.display = 'none';
+            updateAssetValues();
+        };
+        
+        document.addEventListener('DOMContentLoaded', initDB);
+    </script>
+</body>
+</html>

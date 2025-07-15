@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>زکوٰۃ کیلکولیٹر</title>
+  <!-- اردو فانٹ شامل کریں -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Nastaliq Urdu', serif;
+      direction: rtl;
+      margin: 0;
+      padding: 20px;
+      background: #f7f7f7;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    .section {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin: 8px 0 4px;
+    }
+    input, button {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .history, .alerts {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+      background: #fafafa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>زکوٰۃ کیلکولیٹر اور ٹریکر</h1>
+    
+    <!-- اثاثوں کا سیکشن -->
+    <div class="section" id="assets-section">
+      <h2>آپ کے اثاثے</h2>
+      <label for="gold">سونا (ٹولہ):</label>
+      <input type="number" id="gold" placeholder="سونے کی مقدار درج کریں">
+      
+      <label for="silver">چاندی (ٹولہ):</label>
+      <input type="number" id="silver" placeholder="چاندی کی مقدار درج کریں">
+      
+      <label for="cash">نقدی (روپے):</label>
+      <input type="number" id="cash" placeholder="نقدی کی رقم درج کریں">
+      
+      <label for="business">تجارتی اشیاء (روپے):</label>
+      <input type="number" id="business" placeholder="تجارتی اشیاء کی قیمت درج کریں">
+      
+      <button id="saveAssets">اثاثے محفوظ کریں</button>
+    </div>
+    
+    <!-- قیمتوں کا سیکشن -->
+    <div class="section" id="prices-section">
+      <h2>سونے اور چاندی کی قیمتیں</h2>
+      <label for="goldPrice">سونے کی قیمت (روپے فی ٹولہ):</label>
+      <input type="number" id="goldPrice" placeholder="سونے کی قیمت درج کریں">
+      
+      <label for="silverPrice">چاندی کی قیمت (روپے فی ٹولہ):</label>
+      <input type="number" id="silverPrice" placeholder="چاندی کی قیمت درج کریں">
+      
+      <label for="alertThreshold">قیمت تبدیلی کا الرٹ تھریشولڈ (فیصد):</label>
+      <input type="number" id="alertThreshold" placeholder="مثلاً 5 درج کریں">
+      
+      <button id="savePrices">قیمتیں محفوظ کریں</button>
+    </div>
+    
+    <!-- زکوٰۃ کیلکولیشن سیکشن -->
+    <div class="section" id="calculation-section">
+      <h2>زکوٰۃ کیلکولیشن</h2>
+      <button id="calculateZakat">زکوٰۃ کیلکولیٹ کریں</button>
+      <div id="zakatResult"></div>
+    </div>
+    
+    <!-- ہسٹری سیکشن -->
+    <div class="section">
+      <h2>ہسٹری</h2>
+      <div class="history" id="history"></div>
+    </div>
+    
+    <!-- الرٹس سیکشن -->
+    <div class="section">
+      <h2>الرٹس</h2>
+      <div class="alerts" id="alerts"></div>
+    </div>
+  </div>
+
+  <script>
+    // IndexedDB کا آغاز
+    let db;
+    const request = indexedDB.open("ZakatDB", 1);
+    request.onerror = function(event) {
+      console.error("IndexedDB کی خرابی: ", event);
+    };
+    request.onsuccess = function(event) {
+      db = event.target.result;
+      loadData();
+    };
+    request.onupgradeneeded = function(event) {
+      db = event.target.result;
+      db.createObjectStore("assets", { keyPath: "id" });
+      db.createObjectStore("prices", { keyPath: "id" });
+      db.createObjectStore("history", { autoIncrement: true });
+      db.createObjectStore("alerts", { autoIncrement: true });
+    };
+
+    // IndexedDB میں ڈیٹا محفوظ کرنے کا فنکشن
+    function saveToDB(storeName, data) {
+      const tx = db.transaction(storeName, "readwrite");
+      const store = tx.objectStore(storeName);
+      store.put(data);
+      tx.oncomplete = function() {
+        console.log(storeName + " میں محفوظ ہو گیا");
+      };
+      tx.onerror = function(e) {
+        console.error("محفوظ کرنے میں خرابی: ", e);
+      };
+    }
+
+    // IndexedDB سے ڈیٹا حاصل کریں
+    function getFromDB(storeName, key, callback) {
+      const tx = db.transaction(storeName, "readonly");
+      const store = tx.objectStore(storeName);
+      const req = store.get(key);
+      req.onsuccess = function() {
+        callback(req.result);
+      }
+    }
+
+    // ہسٹری میں ریکارڈ شامل کریں
+    function addHistory(record) {
+      const tx = db.transaction("history", "readwrite");
+      const store = tx.objectStore("history");
+      store.add(record);
+      tx.oncomplete = loadHistory;
+    }
+
+    // الرٹس میں پیغام شامل کریں
+    function addAlert(message) {
+      const tx = db.transaction("alerts", "readwrite");
+      const store = tx.objectStore("alerts");
+      store.add({ message: message });
+      tx.oncomplete = loadAlerts;
+    }
+
+    // ہسٹری لوڈ کریں
+    function loadHistory() {
+      const tx = db.transaction("history", "readonly");
+      const store = tx.objectStore("history");
+      const req = store.getAll();
+      req.onsuccess = function() {
+        const historyDiv = document.getElementById("history");
+        historyDiv.innerHTML = "";
+        req.result.forEach(record => {
+          const div = document.createElement("div");
+          div.textContent = record;
+          historyDiv.appendChild(div);
+        });
+      }
+    }
+
+    // الرٹس لوڈ کریں
+    function loadAlerts() {
+      const tx = db.transaction("alerts", "readonly");
+      const store = tx.objectStore("alerts");
+      const req = store.getAll();
+      req.onsuccess = function() {
+        const alertsDiv = document.getElementById("alerts");
+        alertsDiv.innerHTML = "";
+        req.result.forEach(record => {
+          const div = document.createElement("div");
+          div.textContent = record.message;
+          alertsDiv.appendChild(div);
+        });
+      }
+    }
+
+    // اسٹور شدہ ڈیٹا لوڈ کریں
+    function loadData() {
+      // اثاثے لوڈ کریں
+      getFromDB("assets", "userAssets", function(data) {
+        if (data) {
+          document.getElementById("gold").value = data.gold;
+          document.getElementById("silver").value = data.silver;
+          document.getElementById("cash").value = data.cash;
+          document.getElementById("business").value = data.business;
+        }
+      });
+      // قیمتیں لوڈ کریں
+      getFromDB("prices", "currentPrices", function(data) {
+        if (data) {
+          document.getElementById("goldPrice").value = data.goldPrice;
+          document.getElementById("silverPrice").value = data.silverPrice;
+          document.getElementById("alertThreshold").value = data.alertThreshold;
+        }
+      });
+      loadHistory();
+      loadAlerts();
+    }
+
+    // اثاثے محفوظ کرنے کا انوینٹ
+    document.getElementById("saveAssets").addEventListener("click", function() {
+      const assets = {
+        id: "userAssets",
+        gold: parseFloat(document.getElementById("gold").value) || 0,
+        silver: parseFloat(document.getElementById("silver").value) || 0,
+        cash: parseFloat(document.getElementById("cash").value) || 0,
+        business: parseFloat(document.getElementById("business").value) || 0
+      };
+      saveToDB("assets", assets);
+      addHistory("اثاثے اپ ڈیٹ ہوئے: " + JSON.stringify(assets));
+      alert("اثاثے محفوظ ہو گئے ہیں");
+    });
+
+    // قیمتیں محفوظ کرنے کا انوینٹ
+    document.getElementById("savePrices").addEventListener("click", function() {
+      getFromDB("prices", "currentPrices", function(oldData) {
+        const newData = {
+          id: "currentPrices",
+          goldPrice: parseFloat(document.getElementById("goldPrice").value) || 0,
+          silverPrice: parseFloat(document.getElementById("silverPrice").value) || 0,
+          alertThreshold: parseFloat(document.getElementById("alertThreshold").value) || 0
+        };
+        // قیمتوں میں نمایاں تبدیلی چیک کریں
+        if (oldData) {
+          if (oldData.goldPrice && newData.goldPrice) {
+            let diff = Math.abs(newData.goldPrice - oldData.goldPrice) / oldData.goldPrice * 100;
+            if (diff >= newData.alertThreshold) {
+              addAlert("سونے کی قیمت میں نمایاں تبدیلی: " + diff.toFixed(2) + "%");
+            }
+          }
+          if (oldData.silverPrice && newData.silverPrice) {
+            let diff = Math.abs(newData.silverPrice - oldData.silverPrice) / oldData.silverPrice * 100;
+            if (diff >= newData.alertThreshold) {
+              addAlert("چاندی کی قیمت میں نمایاں تبدیلی: " + diff.toFixed(2) + "%");
+            }
+          }
+        }
+        saveToDB("prices", newData);
+        addHistory("قیمتیں اپ ڈیٹ ہو گئیں: " + JSON.stringify(newData));
+        alert("قیمتیں محفوظ ہو گئیں ہیں");
+      });
+    });
+
+    // زکوٰۃ کیلکولیشن کا انوینٹ
+    document.getElementById("calculateZakat").addEventListener("click", function() {
+      getFromDB("assets", "userAssets", function(assets) {
+        getFromDB("prices", "currentPrices", function(prices) {
+          if (!assets || !prices) {
+            alert("براہ کرم پہلے اثاثے اور قیمتیں محفوظ کریں");
+            return;
+          }
+          // نصاب کے اصول
+          const nisabGold = 7.5;   // سونے کا نصاب (ٹولہ)
+          const nisabSilver = 52.5; // چاندی کا نصاب (ٹولہ)
+          
+          // مجموعی دولت
+          let totalWealth = 0;
+          totalWealth += assets.gold * prices.goldPrice;
+          totalWealth += assets.silver * prices.silverPrice;
+          totalWealth += assets.cash;
+          totalWealth += assets.business;
+          
+          // چاندی کی موجودہ قیمت کے حساب سے نصاب کی قدر
+          let nisabValue = nisabSilver * prices.silverPrice;
+          let zakatableWealth = 0;
+          
+          if (assets.gold >= nisabGold) {
+            zakatableWealth += assets.gold * prices.goldPrice;
+          }
+          if (assets.silver >= nisabSilver) {
+            zakatableWealth += assets.silver * prices.silverPrice;
+          }
+          // اگر مجموعی دولت نصاب سے تجاوز کرے تو نقدی اور تجارتی اشیاء شامل کریں
+          if (totalWealth >= nisabValue) {
+            zakatableWealth += assets.cash + assets.business;
+          }
+          
+          let zakat = 0;
+          if (assets.gold >= nisabGold || assets.silver >= nisabSilver || totalWealth >= nisabValue) {
+            zakat = zakatableWealth * 0.025;
+          }
+          
+          document.getElementById("zakatResult").innerHTML = "آپ کی زکوٰۃ: " + zakat.toFixed(2) + " روپے";
+          addHistory("زکوٰۃ کیلکولیٹ کی گئی: " + zakat.toFixed(2) + " روپے");
+          
+          // ان صورتوں میں الرٹ دکھائیں جب نصاب تک پہنچنے کے باوجود زکوٰۃ صفر ہو
+          if (totalWealth >= nisabValue && zakat === 0) {
+            addAlert("آپ کی مجموعی دولت نصاب تک پہنچ گئی ہے");
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

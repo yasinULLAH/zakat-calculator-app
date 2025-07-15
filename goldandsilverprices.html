@@ -1,0 +1,50 @@
+<h1>Current Gold & Silver Prices (PK)</h1>
+<p>Gold Price: <span id="goldPrice">Loading...</span></p>
+<p>Silver Price: <span id="silverPrice">Loading...</span></p>
+<button id="refreshPrices">Refresh Prices</button>
+<p>Last Updated: <span id="lastUpdated">N/A</span></p>
+
+<script>
+    const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbyjHuirHK5fFC58fechSXGIFkjT_Z8rkQlce_QkYF7XnWFO9vdN4g9VUo0-DispTolIhg/exec'; // PASTE THE URL FROM STEP 2.5 HERE!
+
+    async function fetchPrices() {
+        const goldPriceElement = document.getElementById('goldPrice');
+        const silverPriceElement = document.getElementById('silverPrice');
+        const lastUpdatedElement = document.getElementById('lastUpdated');
+
+        goldPriceElement.textContent = 'Fetching...';
+        silverPriceElement.textContent = 'Fetching...';
+        lastUpdatedElement.textContent = 'Updating...';
+
+        try {
+            const response = await fetch(appsScriptUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+
+            if (data.gold && data.silver) {
+                goldPriceElement.textContent = `PKR ${data.gold.toLocaleString('en-PK')}`;
+                silverPriceElement.textContent = `PKR ${data.silver.toLocaleString('en-PK')}`;
+                lastUpdatedElement.textContent = data.timestamp;
+                console.log('Prices fetched:', data);
+            } else {
+                goldPriceElement.textContent = 'Error: Data missing';
+                silverPriceElement.textContent = 'Error: Data missing';
+                lastUpdatedElement.textContent = 'Error';
+                console.error('Data not in expected format:', data);
+            }
+        } catch (error) {
+            goldPriceElement.textContent = 'Failed to load';
+            silverPriceElement.textContent = 'Failed to load';
+            lastUpdatedElement.textContent = 'Failed';
+            console.error('Error fetching prices:', error);
+        }
+    }
+
+    // Fetch prices when the page loads
+    document.addEventListener('DOMContentLoaded', fetchPrices);
+
+    // Add event listener for the refresh button
+    document.getElementById('refreshPrices').addEventListener('click', fetchPrices);
+</script>

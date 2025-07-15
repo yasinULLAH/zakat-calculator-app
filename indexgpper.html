@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+<title>زکوة کیلکولیٹر اور ٹریکر</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body {
+font-family: 'Noto Nastaliq Urdu', 'Noto Sans Arabic', sans-serif;
+background: #f7fafc;
+margin: 0;
+direction: rtl;
+color: #232323;
+}
+.header {
+background: #2e3a4b;
+color: #fff;
+padding: 20px 10px 16px 10px;
+font-size: 2rem;
+text-align: center;
+letter-spacing: 1px;
+}
+.container {
+margin: 0 auto;
+max-width: 520px;
+background: #fff;
+padding: 18px;
+border-radius: 8px;
+box-shadow: 0 2px 8px rgba(50,60,80,0.08);
+}
+.section {
+margin-bottom: 22px;
+padding-bottom: 10px;
+border-bottom: 1px solid #e3e3e3;
+}
+.section:last-child {
+border-bottom: none;
+}
+h2 {
+font-size: 1.15rem;
+margin-bottom: 10px;
+color: #14455a;
+font-weight: 700;
+}
+label {
+display: block;
+margin-bottom: 7px;
+font-weight: 700;
+}
+input, button, select {
+font-family: inherit;
+font-size: 1rem;
+border-radius: 6px;
+border: 1px solid #b3b7bb;
+padding: 7px;
+margin-bottom: 7px;
+width: 100%;
+background: #fcfcfc;
+box-sizing: border-box;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+-webkit-appearance: none;
+margin: 0;
+}
+input[type="number"] {
+appearance: textfield;
+}
+button {
+background: #0b8385;
+color: #fff;
+border: none;
+padding: 9px;
+margin-top: 6px;
+font-size: 1rem;
+letter-spacing: 0.5px;
+cursor: pointer;
+transition: background .25s;
+}
+button:hover {
+background: #067374;
+}
+.alert {
+background: #fff6d1;
+border-right: 6px solid #b97818;
+color: #9b6b18;
+padding: 12px;
+margin: 8px 0 18px 0;
+border-radius: 6px;
+font-size: 1rem;
+line-height: 1.6;
+}
+.history-table {
+width: 100%;
+border-collapse: collapse;
+font-size: 0.92rem;
+}
+.history-table th, .history-table td {
+padding: 7px 4px;
+border-bottom: 1px solid #ececec;
+}
+.history-table th {
+background: #e6f2f1;
+color: #10545c;
+font-weight: 700;
+}
+@media (max-width: 600px) {
+.container {padding:7px;}
+.header {font-size: 1.3rem;}
+h2 {font-size:1rem;}
+}
+</style>
+</head>
+<body>
+<div class="header">زکوة کا کیلکولیٹر اور ٹریکر</div>
+<div class="container">
+
+<div class="section" id="alertsSection" style="display:none;"><div class="alert" id="alertsBox"></div></div>
+
+<div class="section">
+<h2> اپنے اثاثے درج کریں </h2>
+<form id="assetsForm" autocomplete="off">
+<label> سونا (تولہ میں) </label>
+<input id="gold_tolas" type="number" min="0" step="0.01" required value="0">
+<label> چاندی (تولہ میں) </label>
+<input id="silver_tolas" type="number" min="0" step="0.01" required value="0">
+<label> نقدی (پاکستانی روپے میں) </label>
+<input id="cash" type="number" min="0" step="1" required value="0">
+<label> کاروبار کا مال (پاکستانی روپے میں) </label>
+<input id="business_goods" type="number" min="0" step="1" required value="0">
+<button type="submit">محفوظ کریں</button>
+</form>
+</div>
+
+<div class="section">
+<h2> سونے/چاندی کی قیمتیں اور زکوة کی حد </h2>
+<form id="pricesForm" autocomplete="off">
+<label> سونے کی قیمت (۱ تولہ، روپے میں)</label>
+<input id="gold_price" type="number" min="0" step="1" required>
+<label> چاندی کی قیمت (۱ تولہ، روپے میں)</label>
+<input id="silver_price" type="number" min="0" step="1" required>
+<label> قیمت میں تبدیلی کا الرٹ (فیصد میں)</label>
+<input id="price_threshold" type="number" min="1" step="1" required>
+<button type="submit">قیمتیں/حد محفوظ کریں</button>
+</form>
+</div>
+
+<div class="section">
+<h2> حساب کا نتیجہ </h2>
+<div id="calculationResult" style="white-space: pre-line;"></div>
+</div>
+
+<div class="section">
+<h2> حساب کی تاریخ </h2>
+<table class="history-table" id="historyTable">
+<thead>
+<tr>
+<th>تاریخ و وقت</th>
+<th>مجموعی مالیت</th>
+<th>زکوة </th>
+<th>نوٹ</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+
+</div>
+<script>
+const DB_NAME = 'zakat_app', ASSETS_STORE = 'assets', PRICES_STORE = 'prices', HISTORY_STORE = 'history';
+let db, lastPrices = {}, lastAssets = {}, lastCalc = {}, alertState = {nisab:false,gold:-1,silver:-1};
+
+function initDB() {
+let r = indexedDB.open(DB_NAME,1);
+r.onupgradeneeded=function(e){
+let db=e.target.result;
+if(!db.objectStoreNames.contains(ASSETS_STORE))db.createObjectStore(ASSETS_STORE);
+if(!db.objectStoreNames.contains(PRICES_STORE))db.createObjectStore(PRICES_STORE);
+if(!db.objectStoreNames.contains(HISTORY_STORE))db.createObjectStore(HISTORY_STORE,{autoIncrement:true});
+};
+r.onsuccess=function(e){db=e.target.result;loadData();};
+}
+function setStore(store,key,val,cb){
+let t=db.transaction([store],'readwrite').objectStore(store);
+let r=t.put(val,key);
+if(cb)r.onsuccess=()=>cb();
+}
+function getStore(store,key,cb){
+let t=db.transaction([store],'readonly').objectStore(store);
+let r=t.get(key);
+r.onsuccess=()=>cb(r.result);
+}
+function addHistory(val,cb){
+let t=db.transaction([HISTORY_STORE],'readwrite').objectStore(HISTORY_STORE);
+t.add(val).onsuccess=()=>{if(cb)cb();};
+}
+function getAllHistory(cb){
+let t=db.transaction([HISTORY_STORE],'readonly').objectStore(HISTORY_STORE),arr=[];
+t.openCursor().onsuccess=function(e){
+let c=e.target.result;
+if(c){arr.unshift({id:c.key,...c.value});c.continue();}
+else cb(arr);
+};
+}
+function loadData(){
+getStore(ASSETS_STORE,'main',d=>{
+if(d){lastAssets=d;loadAssetUI();}
+});
+getStore(PRICES_STORE,'main',d=>{
+if(d){lastPrices=d;loadPriceUI();}
+else{
+lastPrices={gold_price:'',silver_price:'',price_threshold:'5'};
+loadPriceUI();
+}
+});
+getAllHistory(renderHistory);
+}
+function loadAssetUI(){
+if(lastAssets){
+['gold_tolas','silver_tolas','cash','business_goods'].forEach(id=>{
+document.getElementById(id).value=lastAssets[id]||0;
+});
+calculate();
+}
+}
+function loadPriceUI(){
+if(lastPrices){
+document.getElementById('gold_price').value=lastPrices.gold_price||'';
+document.getElementById('silver_price').value=lastPrices.silver_price||'';
+document.getElementById('price_threshold').value=lastPrices.price_threshold||'5';
+}
+calculate();
+}
+function renderHistory(arr){
+let t=document.getElementById('historyTable').querySelector('tbody');
+t.innerHTML='';
+arr.forEach(h=>{
+let tr=document.createElement('tr');
+tr.innerHTML='<td>'+h.time+'</td><td>'+h.total_wealth+'</td><td>'+h.zakat_amount+'</td><td>'+h.note+'</td>';
+t.appendChild(tr);
+});
+}
+function toMoney(v){return '₨'+Number(v).toLocaleString('ur-PK');}
+function round2(n){return Math.round(n*100)/100;}
+function nowString(){
+let d=new Date(),f=d.toLocaleDateString('ur-PK',{year:'numeric',month:'2-digit',day:'2-digit'})+' '+d.toLocaleTimeString('ur-PK');
+return f;
+}
+function calculate(){
+let a=lastAssets,p=lastPrices;
+if(!a||!p||!p.gold_price||!p.silver_price)return;
+let gold=+a.gold_tolas||0,silver=+a.silver_tolas||0,cash=+a.cash||0,bg=+a.business_goods||0,goldp=+p.gold_price,silverp=+p.silver_price;
+let total=round2((gold*goldp)+(silver*silverp)+cash+bg);
+let nisabGold=7.5*goldp,nisabSilver=52.5*silverp,nisab=nisabSilver;
+let due=false,reason='';
+if(gold>=7.5&&silver<52.5&&cash==0&&bg==0){due=true;reason='صرف سونے پر';nisab=nisabGold;}
+else if(silver>=52.5&&gold<7.5&&cash==0&&bg==0){due=true;reason='صرف چاندی پر';nisab=nisabSilver;}
+else if(gold>=7.5&&silver>=52.5&&cash==0&&bg==0){due=true;reason='سونا اور چاندی دونوں';nisab=Math.max(nisabGold,nisabSilver);}
+else if((gold*goldp+silver*silverp+cash+bg)>=nisabSilver){due=true;reason='مجموعی مالیت';nisab=nisabSilver;}
+let zakat = due? round2(0.025*total) : 0;
+let rT='کل مالیت: '+toMoney(total)+'\n';
+if(due){rT+='زکوة واجب ہے: '+toMoney(zakat)+'  ('+reason+') \n';}
+else{rT+='اس وقت زکوة واجب نہیں۔';}
+rT+='\n\n موجودہ نساب (چاندی): '+toMoney(nisabSilver);
+rT+='\n موجودہ نساب (سونا): '+toMoney(nisabGold);
+rT+='\n\n نوٹ: زکوة 2.5٪ حساب سے نکالی جاتی ہے۔';
+document.getElementById('calculationResult').innerText=rT;
+lastCalc={time:nowString(),total_wealth:toMoney(total),zakat_amount:due?toMoney(zakat):'-',note:due?reason:'-'};
+showAlerts(due,total,goldp,silverp,nisab);
+}
+function showAlerts(isNisabReached,total,goldp,silverp,nisab){
+let box=document.getElementById('alertsBox'),sec=document.getElementById('alertsSection'),alerts=[];
+let p=lastPrices,tp=+p.price_threshold||5;
+if(!alertState.nisab&&isNisabReached){
+alerts.push('مبارک ہو! آپ کی کل مالیت نساب کو پہنچ گئی ہے۔ اب آپ پر زکوة واجب ہے۔');
+alertState.nisab=true;
+}
+if(alertState.nisab&&(!isNisabReached)){alertState.nisab=false;}
+if(alertState.gold>-1){
+let diff=Math.abs(goldp-alertState.gold)*100/alertState.gold;
+if(diff>=tp)alerts.push('سونے کی قیمت میں '+round2(diff)+'٪ تبدیلی آئی ہے۔');
+}
+alertState.gold=goldp;
+if(alertState.silver>-1){
+let diff2=Math.abs(silverp-alertState.silver)*100/alertState.silver;
+if(diff2>=tp)alerts.push('چاندی کی قیمت میں '+round2(diff2)+'٪ تبدیلی آئی ہے۔');
+}
+alertState.silver=silverp;
+if(alerts.length){
+box.innerHTML=alerts.map(a=>'<div>'+a+'</div>').join('');
+sec.style.display='';
+}else{sec.style.display='none';}
+}
+document.getElementById('assetsForm').onsubmit=function(e){
+e.preventDefault();
+let data={
+gold_tolas:document.getElementById('gold_tolas').value,
+silver_tolas:document.getElementById('silver_tolas').value,
+cash:document.getElementById('cash').value,
+business_goods:document.getElementById('business_goods').value,
+};
+setStore(ASSETS_STORE,'main',data,()=>{
+lastAssets=data;
+calculate();
+addHistory({...lastCalc},()=>getAllHistory(renderHistory));
+});
+};
+document.getElementById('pricesForm').onsubmit=function(e){
+e.preventDefault();
+let data={
+gold_price:document.getElementById('gold_price').value,
+silver_price:document.getElementById('silver_price').value,
+price_threshold:document.getElementById('price_threshold').value,
+};
+setStore(PRICES_STORE,'main',data,()=>{
+lastPrices=data;
+calculate();
+});
+};
+window.onload=initDB;
+</script>
+</body>
+</html>

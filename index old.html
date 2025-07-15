@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>جامع زکوٰۃ کیلکولیٹر اور ٹریکر</title>
+    <style>
+        :root {
+            --primary-color: #00796b; /* Teal */
+            --secondary-color: #f9f9f9;
+            --text-color: #333;
+            --border-color: #ddd;
+            --hover-color: #004d40; /* Darker Teal */
+            --danger-color: #dc3545;
+            --danger-hover-color: #c82333;
+            --warning-bg: #fff3cd;
+            --warning-text: #856404;
+            --warning-border: #ffeeba;
+            --info-bg: #d1ecf1;
+            --info-text: #0c5460;
+            --info-border: #bee5eb;
+        }
+        body {
+            font-family: 'Noto Nastaliq Urdu', 'Arial', sans-serif;
+            direction: rtl;
+            text-align: right;
+            background-color: #eef2f3; /* Light gray-blue background */
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            font-size: 16px;
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        h2 {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+        h3 {
+             text-align: right;
+             margin-top: 20px;
+             margin-bottom: 15px;
+             font-size: 1.2em;
+             color: #555;
+        }
+        .main-layout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+        }
+        .input-column, .results-column {
+            flex: 1;
+            min-width: 300px;
+        }
+        .section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--secondary-color);
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="number"], input[type="date"], select {
+            width: 100%; /* Adjusted for box-sizing */
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1rem;
+            text-align: right;
+            box-sizing: border-box;
+        }
+        input:focus, select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 121, 107, 0.3);
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .input-group input[type="number"] {
+            flex-grow: 1;
+            margin-bottom: 0;
+        }
+        .input-group select {
+            width: auto;
+            flex-basis: 100px;
+            margin-bottom: 0;
+        }
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-family: inherit;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button:hover {
+            background-color: var(--hover-color);
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #resultsSummaryTable {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+        }
+        #resultsSummaryTable td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1.05em;
+        }
+         #resultsSummaryTable tr:last-child td {
+             border-bottom: none;
+         }
+        #resultsSummaryTable td:first-child {
+            font-weight: bold;
+            color: #444;
+            width: 60%;
+        }
+         #resultsSummaryTable td:last-child {
+             text-align: left;
+             font-weight: bold;
+             direction: ltr; /* For currency alignment */
+         }
+        #finalZakatAmount {
+            font-weight: bold;
+            font-size: 1.4rem;
+            color: var(--primary-color);
+            margin-top: 15px;
+            text-align: center;
+            padding: 10px;
+            background-color: #e0f2f1; /* Light teal background */
+            border-radius: 5px;
+        }
+        #historyTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            table-layout: fixed; /* Helps with column widths */
+            word-wrap: break-word;
+        }
+        #historyTable th, #historyTable td {
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            text-align: right;
+        }
+        #historyTable th {
+            background-color: #e9ecef; /* Light gray */
+            color: #495057; /* Dark gray */
+            font-weight: bold;
+        }
+        #historyTable tr:nth-child(even) {
+            background-color: var(--secondary-color);
+        }
+        .delete-btn {
+            background-color: var(--danger-color);
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .delete-btn:hover {
+            background-color: var(--danger-hover-color);
+        }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .alert-info {
+            color: var(--info-text);
+            background-color: var(--info-bg);
+            border-color: var(--info-border);
+        }
+        .alert-warning {
+            color: var(--warning-text);
+            background-color: var(--warning-bg);
+            border-color: var(--warning-border);
+        }
+        .hidden {
+            display: none;
+        }
+        .currency {
+             direction: ltr;
+             unicode-bidi: embed;
+        }
+        .small-text {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 15px;
+            display: block;
+        }
+        .form-row {
+             display: flex;
+             gap: 15px;
+             margin-bottom: 15px;
+        }
+        .form-row > div {
+             flex: 1;
+        }
+        .form-row label, .form-row input, .form-row select {
+            margin-bottom: 0; /* Remove bottom margin for items in a row */
+        }
+        /* Responsive adjustments */
+        @media (max-width: 992px) {
+            .main-layout {
+                flex-direction: column;
+            }
+            .input-column, .results-column {
+                min-width: 100%;
+            }
+        }
+        @media (max-width: 600px) {
+            body {
+                font-size: 15px;
+            }
+            .container {
+                padding: 15px;
+            }
+             h1 { font-size: 1.8em; }
+             h2 { font-size: 1.4em; }
+             h3 { font-size: 1.1em; }
+            .input-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .input-group select {
+                width: 100%;
+                flex-basis: auto;
+                margin-top: 5px;
+            }
+            button {
+                font-size: 1rem;
+                padding: 10px 20px;
+            }
+            #historyTable {
+                font-size: 0.8rem;
+            }
+            #historyTable th, #historyTable td {
+                padding: 5px;
+            }
+             .form-row {
+                 flex-direction: column;
+                 gap: 0; /* Remove gap when stacked */
+                 margin-bottom: 0; /* Manage spacing with individual inputs */
+             }
+              .form-row > div {
+                   margin-bottom: 15px; /* Add margin back when stacked */
+              }
+               .form-row label {
+                    margin-bottom: 8px; /* Add margin back when stacked */
+               }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>جامع زکوٰۃ کیلکولیٹر اور ٹریکر</h1>
+
+        <div id="reminderAlert" class="alert alert-warning hidden"></div>
+        <div id="infoAlert" class="alert alert-info">
+            یہ کیلکولیٹر حنفی فقہ کے مطابق بنایا گیا ہے۔ ذاتی استعمال کی اشیاء (گھر، گاڑی، کپڑے وغیرہ) پر زکوٰۃ واجب نہیں ہے۔ براہ کرم درست حساب کے لیے موجودہ مارکیٹ ریٹ استعمال کریں۔
+        </div>
+
+        <div class="main-layout">
+            <div class="input-column">
+                <div class="section">
+                    <h2>1. قیمتیں اور تاریخ</h2>
+                    <div class="form-row">
+                        <div>
+                            <label for="goldPrice">سونے کی قیمت (فی تولہ PKR):</label>
+                            <input type="number" id="goldPrice" placeholder="مثلاً 240000" value="240000" min="0">
+                        </div>
+                        <div>
+                            <label for="silverPrice">چاندی کی قیمت (فی تولہ PKR):</label>
+                            <input type="number" id="silverPrice" placeholder="مثلاً 2800" value="2800" min="0">
+                        </div>
+                    </div>
+                     <div>
+                            <label for="calculationDate">زکوٰۃ حساب کی تاریخ:</label>
+                            <input type="date" id="calculationDate">
+                     </div>
+                    <button onclick="updatePrices()">قیمتیں محفوظ کریں</button>
+                </div>
+
+                <div class="section">
+                    <h2>2. قابلِ زکوٰۃ اثاثے</h2>
+
+                    <h3>سونا و چاندی</h3>
+                     <div class="form-row">
+                         <div>
+                            <label for="goldAmount">سونا:</label>
+                            <div class="input-group">
+                                <input type="number" id="goldAmount" placeholder="مقدار" min="0" step="any">
+                                <select id="goldUnit">
+                                    <option value="grams">گرام</option>
+                                    <option value="tolas" selected>تولہ</option>
+                                </select>
+                            </div>
+                         </div>
+                         <div>
+                             <label for="silverAmount">چاندی:</label>
+                            <div class="input-group">
+                                <input type="number" id="silverAmount" placeholder="مقدار" min="0" step="any">
+                                <select id="silverUnit">
+                                    <option value="grams">گرام</option>
+                                    <option value="tolas" selected>تولہ</option>
+                                </select>
+                            </div>
+                         </div>
+                     </div>
+
+                    <h3>نقد رقم اور سرمایہ کاری</h3>
+                    <label for="cashInHand">نقد رقم (ہاتھ میں):</label>
+                    <input type="number" id="cashInHand" placeholder="PKR" min="0" step="any">
+
+                    <label for="cashInBank">بینک بیلنس (تمام اکاؤنٹس):</label>
+                    <input type="number" id="cashInBank" placeholder="PKR" min="0" step="any">
+
+                    <label for="investments">دیگر سرمایہ کاری (شیئرز، فنڈز، وغیرہ کی مارکیٹ ویلیو):</label>
+                    <input type="number" id="investments" placeholder="PKR" min="0" step="any">
+
+                    <h3>تجارتی اثاثے</h3>
+                     <label for="businessStock">تجارتی مال (فروخت کے لیے اسٹاک کی مالیت):</label>
+                    <input type="number" id="businessStock" placeholder="PKR" min="0" step="any">
+
+                     <label for="businessReceivables">واجب الوصول رقم (وصول ہونے کا امکان ہو):</label>
+                    <input type="number" id="businessReceivables" placeholder="PKR" min="0" step="any">
+
+                </div>
+
+                <div class="section">
+                     <h2>3. واجبات / قرض</h2>
+                      <label for="liabilities">فوری قابلِ ادا قرض / واجبات:</label>
+                     <input type="number" id="liabilities" placeholder="PKR" min="0" step="any" value="0">
+                     <span class="small-text">وہ قرض جن کی ادائیگی اگلے 12 مہینوں میں متوقع ہے اور زکوٰۃ کی تاریخ پر واجب الادا ہیں۔</span>
+                </div>
+
+                 <button onclick="calculateZakat()">زکوٰۃ کا حساب لگائیں</button>
+
+            </div>
+
+            <div class="results-column">
+                 <div class="section">
+                    <h2>4. نتیجہ</h2>
+                    <div id="calculationResults">
+                        <p>براہ کرم بائیں جانب اثاثوں اور واجبات کی تفصیلات درج کریں اور 'حساب لگائیں' بٹن دبائیں۔</p>
+                    </div>
+                     <div id="finalZakatAmount" class="hidden"></div>
+                     <button id="saveRecordBtn" class="hidden" onclick="saveRecord()" disabled>ریکارڈ محفوظ کریں</button>
+                 </div>
+
+                 <div class="section">
+                     <h2>5. گزشتہ ریکارڈز</h2>
+                     <div id="historyTableContainer">
+                         <p>کوئی ریکارڈ موجود نہیں۔</p>
+                     </div>
+                 </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const TOLA_IN_GRAMS = 11.664;
+        const GOLD_NISAB_GRAMS = 87.48;
+        const SILVER_NISAB_TOLAS = 52.5;
+        const SILVER_NISAB_GRAMS = 612.36;
+        const ZAKAT_RATE = 0.025;
+
+        let db;
+        let currentCalculationResult = null;
+
+        // --- IndexedDB Setup ---
+        const request = indexedDB.open("zakatDB_v2", 2); // Increased version for potential schema changes
+
+        request.onerror = function(event) {
+            console.error("Database error: " + event.target.errorCode);
+            alert("ڈیٹا بیس کھولنے میں خرابی ہوئی!");
+        };
+
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            initializeUI();
+        };
+
+        request.onupgradeneeded = function(event) {
+            db = event.target.result;
+            const oldVersion = event.oldVersion;
+            if (oldVersion < 1) {
+                 // Initial schema
+                 const objectStore = db.createObjectStore("zakatHistory", { keyPath: "id", autoIncrement:true });
+                objectStore.createIndex("timestamp", "timestamp", { unique: false });
+                 // Add more indexes as needed from previous version if starting fresh
+            }
+             if (oldVersion < 2) {
+                 // Schema updates for version 2
+                 const transaction = event.target.transaction;
+                 const objectStore = transaction.objectStore("zakatHistory");
+                 // Create new indexes if they don't exist
+                 if (!objectStore.indexNames.contains('calculationDate')) {
+                    objectStore.createIndex("calculationDate", "calculationDate", { unique: false });
+                 }
+                 if (!objectStore.indexNames.contains('netAssets')) {
+                     objectStore.createIndex("netAssets", "netAssets", { unique: false });
+                 }
+                  if (!objectStore.indexNames.contains('nisabValueUsed')) {
+                     objectStore.createIndex("nisabValueUsed", "nisabValueUsed", { unique: false });
+                 }
+                 // Add indexes for detailed asset breakdown if needed
+                 if (!objectStore.indexNames.contains('totalCash')) objectStore.createIndex("totalCash", "totalCash", { unique: false });
+                 if (!objectStore.indexNames.contains('totalBusinessAssets')) objectStore.createIndex("totalBusinessAssets", "totalBusinessAssets", { unique: false });
+                 if (!objectStore.indexNames.contains('totalLiabilities')) objectStore.createIndex("totalLiabilities", "totalLiabilities", { unique: false });
+             }
+        };
+
+        // --- UI Initialization ---
+         function initializeUI() {
+             loadPrices();
+             loadHistory();
+             checkReminder();
+             setTodayDate();
+             document.getElementById('saveRecordBtn').disabled = true; // Disable save initially
+         }
+
+         function setTodayDate() {
+             const today = new Date();
+             const year = today.getFullYear();
+             const month = String(today.getMonth() + 1).padStart(2, '0');
+             const day = String(today.getDate()).padStart(2, '0');
+             document.getElementById('calculationDate').value = `${year}-${month}-${day}`;
+         }
+
+        // --- Helper Functions ---
+        function getElementValue(id, defaultValue = 0) {
+            const element = document.getElementById(id);
+            // Treat empty string as 0
+            return parseFloat(element.value) || defaultValue;
+        }
+
+        function getElementStrValue(id) {
+            return document.getElementById(id).value;
+        }
+
+         function formatCurrency(value) {
+            return value.toLocaleString('ur-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 2 });
+         }
+
+         function formatCurrencyNoFraction(value) {
+              return value.toLocaleString('ur-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 });
+         }
+
+        function convertToGrams(amount, unit) {
+            if (!amount || amount <= 0) return 0;
+            return unit === 'grams' ? amount : amount * TOLA_IN_GRAMS;
+        }
+
+        // --- Price Management ---
+        function updatePrices() {
+            const goldPrice = getElementValue('goldPrice');
+            const silverPrice = getElementValue('silverPrice');
+            if (goldPrice <= 0 || silverPrice <= 0) {
+                 alert('براہ کرم سونے اور چاندی کی درست مثبت قیمتیں درج کریں۔');
+                 return;
+            }
+            localStorage.setItem('goldPricePerTola', goldPrice);
+            localStorage.setItem('silverPricePerTola', silverPrice);
+            alert('قیمتیں کامیابی سے محفوظ ہو گئیں۔');
+            // Automatically recalculate if values are present
+            if (document.getElementById('goldAmount').value || document.getElementById('silverAmount').value || document.getElementById('cashInHand').value || document.getElementById('cashInBank').value) {
+                 calculateZakat();
+            }
+        }
+
+        function loadPrices() {
+            const goldPrice = localStorage.getItem('goldPricePerTola') || '240000';
+            const silverPrice = localStorage.getItem('silverPricePerTola') || '2800';
+            document.getElementById('goldPrice').value = goldPrice;
+            document.getElementById('silverPrice').value = silverPrice;
+        }
+
+        // --- Zakat Calculation ---
+        function calculateZakat() {
+            const goldPricePerTola = getElementValue('goldPrice');
+            const silverPricePerTola = getElementValue('silverPrice');
+            const calculationDateStr = getElementStrValue('calculationDate');
+
+             if (!calculationDateStr) {
+                 alert('براہ کرم حساب کی تاریخ منتخب کریں۔');
+                 return;
+             }
+             const calculationDate = new Date(calculationDateStr);
+
+
+            if (goldPricePerTola <= 0 || silverPricePerTola <= 0) {
+                document.getElementById('calculationResults').innerHTML = '<p class="alert alert-warning">براہ کرم سونے اور چاندی کی درست قیمتیں درج کریں۔</p>';
+                document.getElementById('finalZakatAmount').classList.add('hidden');
+                document.getElementById('saveRecordBtn').classList.add('hidden');
+                document.getElementById('saveRecordBtn').disabled = true;
+                currentCalculationResult = null;
+                return;
+            }
+
+            // 1. Gather Asset Values
+            const goldAmountRaw = getElementValue('goldAmount');
+            const goldUnit = getElementStrValue('goldUnit');
+            const goldGrams = convertToGrams(goldAmountRaw, goldUnit);
+            const goldValue = (goldGrams / TOLA_IN_GRAMS) * goldPricePerTola;
+
+            const silverAmountRaw = getElementValue('silverAmount');
+            const silverUnit = getElementStrValue('silverUnit');
+            const silverGrams = convertToGrams(silverAmountRaw, silverUnit);
+            const silverValue = (silverGrams / TOLA_IN_GRAMS) * silverPricePerTola;
+
+            const cashInHand = getElementValue('cashInHand');
+            const cashInBank = getElementValue('cashInBank');
+            const investments = getElementValue('investments');
+            const totalCashAndInvestments = cashInHand + cashInBank + investments;
+
+            const businessStock = getElementValue('businessStock');
+            const businessReceivables = getElementValue('businessReceivables');
+            const totalBusinessAssets = businessStock + businessReceivables;
+
+            // 2. Calculate Gross Zakatable Assets
+            const grossZakatableAssets = goldValue + silverValue + totalCashAndInvestments + totalBusinessAssets;
+
+            // 3. Get Liabilities
+            const liabilities = getElementValue('liabilities');
+
+            // 4. Calculate Net Zakatable Assets
+            const netZakatableAssets = Math.max(0, grossZakatableAssets - liabilities);
+
+            // 5. Determine Nisab
+            const silverNisabValue = SILVER_NISAB_TOLAS * silverPricePerTola;
+            const goldNisabGramsThreshold = GOLD_NISAB_GRAMS;
+            const silverNisabGramsThreshold = SILVER_NISAB_GRAMS;
+
+            let nisabValueUsed = silverNisabValue; // Default to silver Nisab value
+            let isNisabMet = false;
+            let zakatDue = 0;
+            let nisabType = `چاندی (${SILVER_NISAB_TOLAS} تولہ)`;
+            let message = '';
+
+            const hasOnlyGold = goldGrams > 0 && silverGrams <= 0 && totalCashAndInvestments <= 0 && totalBusinessAssets <= 0;
+            const hasOnlySilver = silverGrams > 0 && goldGrams <= 0 && totalCashAndInvestments <= 0 && totalBusinessAssets <= 0;
+
+            if (hasOnlyGold) {
+                 nisabType = `سونا (${goldNisabGramsThreshold.toFixed(2)} گرام)`;
+                if (goldGrams >= goldNisabGramsThreshold && netZakatableAssets >= silverNisabValue) {
+                     // While Nisab in grams is met, Hanafi fiqh often still compares final net value to silver nisab value
+                    isNisabMet = true;
+                    zakatDue = netZakatableAssets * ZAKAT_RATE;
+                    message = `صرف سونا ہے۔ سونے کا نصاب (${goldNisabGramsThreshold.toFixed(2)} گرام) پورا ہے اور صافی مالیت چاندی کے نصاب سے زیادہ ہے۔`;
+                 } else if (goldGrams >= goldNisabGramsThreshold) {
+                     message = `صرف سونا ہے۔ سونے کا نصاب (${goldNisabGramsThreshold.toFixed(2)} گرام) پورا ہے، لیکن واجبات نکالنے کے بعد مالیت چاندی کے نصاب سے کم ہے۔ زکوٰۃ واجب نہیں۔`;
+                 } else {
+                    message = `صرف سونا ہے۔ سونے کا نصاب (${goldNisabGramsThreshold.toFixed(2)} گرام) پورا نہیں۔ زکوٰۃ واجب نہیں۔`;
+                }
+                // For clarity, we still show the Silver Nisab value as the monetary threshold
+                nisabValueUsed = silverNisabValue;
+
+            } else if (hasOnlySilver) {
+                 nisabType = `چاندی (${silverNisabGramsThreshold.toFixed(2)} گرام)`;
+                 if (silverGrams >= silverNisabGramsThreshold) {
+                     isNisabMet = true; // Silver Nisab in grams implies value Nisab is met too
+                     zakatDue = netZakatableAssets * ZAKAT_RATE;
+                      message = `صرف چاندی ہے۔ چاندی کا نصاب (${silverNisabGramsThreshold.toFixed(2)} گرام) پورا ہے۔`;
+                 } else {
+                     message = `صرف چاندی ہے۔ چاندی کا نصاب (${silverNisabGramsThreshold.toFixed(2)} گرام) پورا نہیں۔ زکوٰۃ واجب نہیں۔`;
+                 }
+                 nisabValueUsed = silverNisabValue;
+
+            } else {
+                 // Mixed assets, cash, or business goods - Use Silver Nisab Value
+                 nisabType = `چاندی (${SILVER_NISAB_TOLAS} تولہ)`;
+                 nisabValueUsed = silverNisabValue;
+                 if (netZakatableAssets >= nisabValueUsed) {
+                     isNisabMet = true;
+                     zakatDue = netZakatableAssets * ZAKAT_RATE;
+                      message = `مخلوط اثاثے ہیں۔ چاندی کے نصاب (${formatCurrencyNoFraction(nisabValueUsed)}) کی مالیت پوری ہے۔`;
+                 } else {
+                      message = `مخلوط اثاثے ہیں۔ کل مالیت چاندی کے نصاب (${formatCurrencyNoFraction(nisabValueUsed)}) سے کم ہے۔ زکوٰۃ واجب نہیں۔`;
+                 }
+            }
+
+            // 6. Display Results
+            const resultsDiv = document.getElementById('calculationResults');
+            resultsDiv.innerHTML = `
+                <table id="resultsSummaryTable">
+                    <tr><td>سونے کی مالیت</td><td>${formatCurrency(goldValue)}</td></tr>
+                    <tr><td>چاندی کی مالیت</td><td>${formatCurrency(silverValue)}</td></tr>
+                    <tr><td>نقد رقم و سرمایہ کاری</td><td>${formatCurrency(totalCashAndInvestments)}</td></tr>
+                    <tr><td>تجارتی اثاثے</td><td>${formatCurrency(totalBusinessAssets)}</td></tr>
+                    <tr><td><strong>کل قابلِ زکوٰۃ اثاثے</strong></td><td><strong>${formatCurrency(grossZakatableAssets)}</strong></td></tr>
+                    <tr><td>واجبات / قرض</td><td>(${formatCurrency(liabilities)})</td></tr>
+                    <tr><td><strong>صافی قابلِ زکوٰۃ مالیت</strong></td><td><strong>${formatCurrency(netZakatableAssets)}</strong></td></tr>
+                    <tr><td colspan="2"><hr style="border-top: 1px dashed var(--border-color); margin: 5px 0;"></td></tr>
+                    <tr><td>نصاب کی قسم</td><td>${nisabType}</td></tr>
+                    <tr><td>نصاب کی مالیت</td><td>${formatCurrencyNoFraction(nisabValueUsed)}</td></tr>
+                    <tr><td><strong>نصاب پورا ہے؟</strong></td><td><strong>${isNisabMet ? 'ہاں' : 'نہیں'}</strong></td></tr>
+                     <tr><td colspan="2" style="padding-top:10px;">${message}</td></tr>
+                </table>
+            `;
+
+            const finalZakatDiv = document.getElementById('finalZakatAmount');
+            if (isNisabMet && zakatDue > 0) {
+                finalZakatDiv.innerHTML = `واجب الادا زکوٰۃ: <span class="currency">${formatCurrency(zakatDue)}</span>`;
+                finalZakatDiv.classList.remove('hidden');
+                document.getElementById('saveRecordBtn').classList.remove('hidden');
+                 document.getElementById('saveRecordBtn').disabled = false;
+
+                 // Store result for saving
+                 currentCalculationResult = {
+                    timestamp: new Date(), // Entry timestamp
+                    calculationDate: calculationDate, // Date for which Zakat was calculated
+                    goldGrams: goldGrams,
+                    silverGrams: silverGrams,
+                    goldValue: goldValue,
+                    silverValue: silverValue,
+                    cashInHand: cashInHand,
+                    cashInBank: cashInBank,
+                    investments: investments,
+                    totalCash: totalCashAndInvestments,
+                    businessStock: businessStock,
+                    businessReceivables: businessReceivables,
+                    totalBusinessAssets: totalBusinessAssets,
+                    grossAssets: grossZakatableAssets,
+                    liabilities: liabilities,
+                    netAssets: netZakatableAssets,
+                    goldPricePerTola: goldPricePerTola,
+                    silverPricePerTola: silverPricePerTola,
+                    nisabType: nisabType,
+                    nisabValueUsed: nisabValueUsed,
+                    isNisabMet: isNisabMet,
+                    zakatDue: zakatDue
+                };
+
+            } else {
+                 finalZakatDiv.innerHTML = `زکوٰۃ واجب نہیں ہے۔`;
+                 finalZakatDiv.classList.remove('hidden'); // Show the message even if not due
+                 document.getElementById('saveRecordBtn').classList.add('hidden');
+                 document.getElementById('saveRecordBtn').disabled = true;
+                 currentCalculationResult = null;
+            }
+        }
+
+        // --- History Management ---
+        function saveRecord() {
+            if (!currentCalculationResult || !db) {
+                alert('محفوظ کرنے کے لیے کوئی حساب موجود نہیں یا ڈیٹا بیس تیار نہیں۔');
+                return;
+            }
+
+            const transaction = db.transaction(["zakatHistory"], "readwrite");
+            const objectStore = transaction.objectStore("zakatHistory");
+            const request = objectStore.add(currentCalculationResult);
+
+            request.onsuccess = function(event) {
+                alert('ریکارڈ کامیابی سے محفوظ ہو گیا۔');
+                loadHistory(); // Refresh history display
+                currentCalculationResult = null; // Clear current result
+                document.getElementById('saveRecordBtn').disabled = true; // Disable save button again
+                checkReminder(); // Re-check reminder status
+            };
+
+            request.onerror = function(event) {
+                alert('ریکارڈ محفوظ کرنے میں خرابی ہوئی: ' + event.target.error);
+                console.error("Error adding record: ", event.target.error);
+            };
+        }
+
+        function loadHistory() {
+            if (!db) {
+                 setTimeout(loadHistory, 500); return;
+            }
+            const transaction = db.transaction(["zakatHistory"], "readonly");
+            const objectStore = transaction.objectStore("zakatHistory");
+            // Sort by calculationDate descending, then by entry timestamp descending
+            const request = objectStore.getAll();
+
+             request.onsuccess = function(event) {
+                const records = event.target.result.sort((a, b) => {
+                     const dateA = a.calculationDate instanceof Date ? a.calculationDate : new Date(a.calculationDate);
+                     const dateB = b.calculationDate instanceof Date ? b.calculationDate : new Date(b.calculationDate);
+                    if (dateB - dateA !== 0) {
+                        return dateB - dateA;
+                    }
+                    // If calculation dates are the same, sort by entry time (most recent first)
+                     const timeA = a.timestamp instanceof Date ? a.timestamp : new Date(a.timestamp);
+                     const timeB = b.timestamp instanceof Date ? b.timestamp : new Date(b.timestamp);
+                     return timeB - timeA;
+                });
+                displayHistory(records);
+            };
+             request.onerror = function(event) {
+                console.error("Error fetching history: ", event.target.error);
+                document.getElementById('historyTableContainer').innerHTML = '<p>ریکارڈز لوڈ کرنے میں خرابی ہوئی۔</p>';
+            };
+        }
+
+        function displayHistory(records) {
+            const container = document.getElementById('historyTableContainer');
+            if (records.length === 0) {
+                container.innerHTML = '<p>کوئی ریکارڈ موجود نہیں۔</p>';
+                return;
+            }
+
+             // Simplified table for overview
+            let tableHTML = `
+                <table id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>حساب کی تاریخ</th>
+                             <th>صافی مالیت</th>
+                            <th>نصاب پورا ہوا؟</th>
+                            <th>واجب الادا زکوٰۃ</th>
+                            <th>عمل</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            records.forEach(record => {
+                 const calcDate = record.calculationDate instanceof Date ? record.calculationDate : new Date(record.calculationDate);
+                tableHTML += `
+                    <tr>
+                        <td>${calcDate.toLocaleDateString('ur-PK', { year: 'numeric', month: 'short', day: 'numeric'})}</td>
+                        <td>${formatCurrencyNoFraction(record.netAssets || 0)}</td>
+                        <td>${record.isNisabMet ? 'ہاں' : 'نہیں'}</td>
+                        <td>${formatCurrency(record.zakatDue || 0)}</td>
+                        <td><button class="delete-btn" onclick="deleteRecord(${record.id})">حذف کریں</button></td>
+                    </tr>
+                `;
+                 // Could add an expandable row here for more details in the future
+            });
+
+            tableHTML += `</tbody></table>`;
+            container.innerHTML = tableHTML;
+        }
+
+        function deleteRecord(id) {
+            if (!db) return;
+            if (!confirm('کیا آپ واقعی اس ریکارڈ کو حذف کرنا چاہتے ہیں؟')) return;
+
+            const transaction = db.transaction(["zakatHistory"], "readwrite");
+            const objectStore = transaction.objectStore("zakatHistory");
+            const request = objectStore.delete(id);
+
+            request.onsuccess = function(event) {
+                alert('ریکارڈ کامیابی سے حذف ہو گیا۔');
+                loadHistory();
+                checkReminder();
+            };
+             request.onerror = function(event) {
+                alert('ریکارڈ حذف کرنے میں خرابی ہوئی۔');
+                console.error("Error deleting record: ", event.target.error);
+            };
+        }
+
+        // --- Reminder ---
+         function checkReminder() {
+            if (!db) {
+                setTimeout(checkReminder, 500); return;
+            }
+            const transaction = db.transaction(["zakatHistory"], "readonly");
+            const objectStore = transaction.objectStore("zakatHistory");
+            const index = objectStore.index("timestamp"); // Check based on entry timestamp
+            const request = index.openCursor(null, 'prev');
+
+            const reminderAlert = document.getElementById('reminderAlert');
+            reminderAlert.classList.add('hidden');
+
+            request.onsuccess = function(event) {
+                const cursor = event.target.result;
+                if (cursor) {
+                    const lastRecord = cursor.value;
+                     const lastEntryTimestamp = lastRecord.timestamp instanceof Date ? lastRecord.timestamp : new Date(lastRecord.timestamp);
+                     const lastCalcDate = lastRecord.calculationDate instanceof Date ? lastRecord.calculationDate : new Date(lastRecord.calculationDate);
+                    const oneYearInMillis = 365 * 24 * 60 * 60 * 1000;
+                    const now = new Date().getTime();
+
+                    if (now - lastEntryTimestamp.getTime() >= oneYearInMillis) {
+                         const lastDateStr = lastCalcDate.toLocaleDateString('ur-PK', { year: 'numeric', month: 'long', day: 'numeric'});
+                         reminderAlert.textContent = `یاد دہانی: آپ کا آخری زکوٰۃ کا ریکارڈ ${lastDateStr} کے حساب کے لیے تھا۔ ایک سال گزر چکا ہے، نئے حساب کا وقت ہو سکتا ہے۔`;
+                        reminderAlert.classList.remove('hidden');
+                    }
+                }
+            };
+             request.onerror = function(event) {
+                console.error("Error checking reminder: ", event.target.error);
+            };
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Event listeners for inputs can trigger recalculation if needed,
+            // but the main calculation is triggered by the button.
+             // Call initializeUI only after DB is ready (handled in onsuccess)
+        });
+
+
+
+const fontUrl = "https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&display=swap";
+
+const link = document.createElement("link");
+link.rel = "stylesheet";
+link.href = fontUrl;
+document.head.appendChild(link);
+
+const style = document.createElement("style");
+style.innerHTML = `
+  * {
+    font-family: 'Noto Nastaliq Urdu', serif !important;
+  }
+`;
+document.head.appendChild(style);
+
+    </script>
+
+</body>
+</html>

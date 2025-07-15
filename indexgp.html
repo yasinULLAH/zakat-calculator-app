@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>زکوة کیلکولیٹر</title>
+  <!-- Urdu Google Font: Noto Nastaliq Urdu -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    html, body {
+      font-family: 'Noto Nastaliq Urdu', serif;
+      background: #f8f9fa;
+      color: #222;
+      margin: 0; padding: 0;
+      direction: rtl;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 1.2em;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border-radius: 8px;
+      margin-top: 2em;
+      margin-bottom: 2em;
+    }
+    h1, h2, h3 {
+      font-weight: 700;
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+      color: #046;
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.4em;
+      margin-top: 1em;
+      font-size: 1.1em;
+    }
+    input[type="number"], input[type="date"] {
+      width: 100%;
+      padding: 0.4em;
+      font-size: 1em;
+      border: 1px solid #bbb;
+      border-radius: 5px;
+      font-family: inherit;
+      margin-bottom: 0.2em;
+    }
+    input[type="radio"], input[type="checkbox"] {
+      margin-left: 0.4em;
+    }
+    button {
+      background: #077;
+      color: #fff;
+      border: none;
+      padding: 0.7em 1.2em;
+      border-radius: 5px;
+      font-size: 1em;
+      margin-top: 1em;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    button:hover {
+      background: #055;
+    }
+    .row {
+      display: flex;
+      gap: 1em;
+      align-items: center;
+    }
+    .row > div {
+      flex: 1;
+    }
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1em;
+      font-size: 0.97em;
+    }
+    .history-table th, .history-table td {
+      border: 1px solid #ddd;
+      padding: 0.4em 0.7em;
+      text-align: right;
+    }
+    .history-table th {
+      background: #eef8fa;
+    }
+    .alert, .banner {
+      background: #ffe3ba;
+      color: #a65100;
+      padding: 0.7em;
+      border-radius: 6px;
+      margin-bottom: 1em;
+      font-size: 1.1em;
+      text-align: center;
+    }
+    .success {
+      background: #c9f7c1;
+      color: #185d22;
+    }
+    @media (max-width: 600px) {
+      .container { padding: 0.7em; }
+      .history-table th, .history-table td { font-size: 0.93em; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>زکوة کیلکولیٹر</h1>
+    <div id="zakat-alert" class="banner" style="display:none"></div>
+    <form id="zakat-form" autocomplete="off">
+      <h2>اپنے اثاثے درج کریں</h2>
+      <!-- Gold -->
+      <label>سونا:</label>
+      <div class="row">
+        <div>
+          <input type="number" min="0" step="any" id="gold" placeholder="وزن" required>
+        </div>
+        <div>
+          <input type="radio" name="goldunit" id="gold-gram" value="gram" checked><label for="gold-gram">گرام</label>
+          <input type="radio" name="goldunit" id="gold-tola" value="tola"><label for="gold-tola">تولہ</label>
+        </div>
+      </div>
+      <!-- Silver -->
+      <label>چاندی:</label>
+      <div class="row">
+        <div>
+          <input type="number" min="0" step="any" id="silver" placeholder="وزن" required>
+        </div>
+        <div>
+          <input type="radio" name="silverunit" id="silver-gram" value="gram" checked><label for="silver-gram">گرام</label>
+          <input type="radio" name="silverunit" id="silver-tola" value="tola"><label for="silver-tola">تولہ</label>
+        </div>
+      </div>
+      <label for="cash">نقد رقم (پاکستانی روپیہ):</label>
+      <input type="number" min="0" step="any" id="cash" placeholder="رقم" required>
+
+      <label for="business">کاروباری مال (پاکستانی روپیہ):</label>
+      <input type="number" min="0" step="any" id="business" placeholder="رقم" required>
+
+      <h2>مارکیٹ ریٹ درج کریں</h2>
+      <label for="goldprice">فی تولہ سونا (پاکستانی روپیہ):</label>
+      <input type="number" min="0" step="any" id="goldprice" placeholder="فی تولہ سونا" required>
+      <label for="silverprice">فی تولہ چاندی (پاکستانی روپیہ):</label>
+      <input type="number" min="0" step="any" id="silverprice" placeholder="فی تولہ چاندی" required>
+
+      <button type="button" onclick="calculateZakat()">حساب لگائیں</button>
+      <button type="button" onclick="saveAssets()" style="background:#055">محفوظ کریں</button>
+    </form>
+    <div id="result" class="alert" style="display:none"></div>
+
+    <h2>زکوة کیلکولیشن ہسٹری</h2>
+    <table class="history-table" id="history-table">
+      <thead>
+        <tr>
+          <th>تاریخ</th>
+          <th>اثاثے</th>
+          <th>ریٹ</th>
+          <th>کل مالیت</th>
+          <th>زکوة</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h2>یاد دہانی سیٹنگز</h2>
+    <label for="zakat-date">اپنی سالانہ زکوة کی تاریخ مقرر کریں:</label>
+    <input type="date" id="zakat-date">
+    <button type="button" onclick="saveZakatDate()">تاریخ محفوظ کریں</button>
+    <label><input type="checkbox" id="alert-price" checked> جب سونے/چاندی کے ریٹ تبدیل ہوں تو مطلع کریں</label>
+    <label><input type="checkbox" id="alert-nisab" checked> جب مالیت نصاب کے برابر ہو جائے تو مطلع کریں</label>
+  </div>
+
+  <script>
+    // --- Urdu font already loaded via Google Fonts ---
+
+    // IndexedDB Setup
+    let db;
+    const DB_NAME = "zakat_urdu";
+    const DB_VERSION = 1;
+
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onerror = (e) => reject(e);
+        request.onsuccess = (e) => {
+          db = e.target.result;
+          resolve(db);
+        };
+        request.onupgradeneeded = (e) => {
+          db = e.target.result;
+          if (!db.objectStoreNames.contains("assets")) db.createObjectStore("assets", {keyPath: "id"});
+          if (!db.objectStoreNames.contains("prices")) db.createObjectStore("prices", {keyPath: "date"});
+          if (!db.objectStoreNames.contains("history")) db.createObjectStore("history", {autoIncrement: true});
+          if (!db.objectStoreNames.contains("settings")) db.createObjectStore("settings", {keyPath: "key"});
+        };
+      });
+    }
+
+    // Load saved data on page load
+    document.addEventListener("DOMContentLoaded", async () => {
+      await openDB();
+      await loadAssets();
+      await loadHistory();
+      await loadSettings();
+      checkZakatDue();
+      // Request notification permission if not already granted
+      if (Notification && Notification.permission !== "granted") {
+        Notification.requestPermission();
+      }
+    });
+
+    // Save assets & prices to IndexedDB
+    function saveAssets() {
+      const gold = parseFloat(document.getElementById("gold").value) || 0;
+      const goldunit = document.querySelector('input[name="goldunit"]:checked').value;
+      const silver = parseFloat(document.getElementById("silver").value) || 0;
+      const silverunit = document.querySelector('input[name="silverunit"]:checked').value;
+      const cash = parseFloat(document.getElementById("cash").value) || 0;
+      const business = parseFloat(document.getElementById("business").value) || 0;
+      const goldprice = parseFloat(document.getElementById("goldprice").value) || 0;
+      const silverprice = parseFloat(document.getElementById("silverprice").value) || 0;
+
+      const tx = db.transaction(["assets", "prices"], "readwrite");
+      tx.objectStore("assets").put({
+        id: 1, gold, goldunit, silver, silverunit, cash, business
+      });
+      const today = new Date().toISOString().split("T")[0];
+      tx.objectStore("prices").put({
+        date: today, goldprice, silverprice
+      });
+      tx.oncomplete = () => {
+        showBanner("اثاثے اور ریٹ محفوظ ہو گئے۔", true);
+      };
+    }
+
+    // Load saved assets
+    function loadAssets() {
+      return new Promise((resolve) => {
+        const tx = db.transaction(["assets", "prices"], "readonly");
+        tx.objectStore("assets").get(1).onsuccess = (e) => {
+          const d = e.target.result;
+          if (d) {
+            document.getElementById("gold").value = d.gold || "";
+            document.getElementById("silver").value = d.silver || "";
+            document.getElementById("cash").value = d.cash || "";
+            document.getElementById("business").value = d.business || "";
+            document.getElementById("gold-" + d.goldunit).checked = true;
+            document.getElementById("silver-" + d.silverunit).checked = true;
+          }
+        };
+        // Load latest prices
+        let priceCursor = tx.objectStore("prices").openCursor(null, "prev");
+        priceCursor.onsuccess = (e) => {
+          const cursor = e.target.result;
+          if (cursor && cursor.value) {
+            document.getElementById("goldprice").value = cursor.value.goldprice || "";
+            document.getElementById("silverprice").value = cursor.value.silverprice || "";
+          }
+        };
+        tx.oncomplete = resolve;
+      });
+    }
+
+    // Save yearly zakat date and alert settings
+    function saveZakatDate() {
+      const date = document.getElementById("zakat-date").value;
+      const alertPrice = document.getElementById("alert-price").checked;
+      const alertNisab = document.getElementById("alert-nisab").checked;
+      const tx = db.transaction("settings", "readwrite");
+      tx.objectStore("settings").put({key: "zakat-date", value: date});
+      tx.objectStore("settings").put({key: "alert-price", value: alertPrice});
+      tx.objectStore("settings").put({key: "alert-nisab", value: alertNisab});
+      tx.oncomplete = () => {
+        showBanner("یاد دہانی سیٹنگز محفوظ ہو گئیں۔", true);
+        checkZakatDue();
+      };
+    }
+
+    // Load settings (date, alerts)
+    function loadSettings() {
+      return new Promise((resolve) => {
+        const tx = db.transaction("settings", "readonly");
+        tx.objectStore("settings").get("zakat-date").onsuccess = (e) => {
+          if (e.target.result)
+            document.getElementById("zakat-date").value = e.target.result.value;
+        };
+        tx.objectStore("settings").get("alert-price").onsuccess = (e) => {
+          if (e.target.result !== undefined)
+            document.getElementById("alert-price").checked = e.target.result.value;
+        };
+        tx.objectStore("settings").get("alert-nisab").onsuccess = (e) => {
+          if (e.target.result !== undefined)
+            document.getElementById("alert-nisab").checked = e.target.result.value;
+        };
+        tx.oncomplete = resolve;
+      });
+    }
+
+    // Show calculation result in Urdu
+    function showResult(msg, success=false) {
+      const el = document.getElementById("result");
+      el.innerHTML = msg;
+      el.className = success ? "alert success" : "alert";
+      el.style.display = "block";
+      setTimeout(() => { el.style.display = "none"; }, 10000);
+    }
+
+    // Show banner/alert
+    function showBanner(msg, success=false) {
+      const el = document.getElementById("zakat-alert");
+      el.innerHTML = msg;
+      el.className = success ? "banner success" : "banner";
+      el.style.display = "block";
+      setTimeout(() => { el.style.display = "none"; }, 7000);
+    }
+
+    // Zakat Calculation Logic
+    function calculateZakat(saveHistory = true) {
+      // Inputs
+      let gold = parseFloat(document.getElementById("gold").value) || 0;
+      let goldunit = document.querySelector('input[name="goldunit"]:checked').value;
+      let silver = parseFloat(document.getElementById("silver").value) || 0;
+      let silverunit = document.querySelector('input[name="silverunit"]:checked').value;
+      let cash = parseFloat(document.getElementById("cash").value) || 0;
+      let business = parseFloat(document.getElementById("business").value) || 0;
+      let goldprice = parseFloat(document.getElementById("goldprice").value) || 0;
+      let silverprice = parseFloat(document.getElementById("silverprice").value) || 0;
+
+      // Convert gold and silver to tolas
+      if (goldunit === "gram") gold = gold / 11.664;
+      if (silverunit === "gram") silver = silver / 11.664;
+
+      // Nisab thresholds
+      const nisab_gold = 7.5; // tola
+      const nisab_silver = 52.5; // tola
+
+      // Check for gold-only, silver-only, or mixed assets
+      const totalGoldVal = gold * goldprice;
+      const totalSilverVal = silver * silverprice;
+      const totalZakatable = totalGoldVal + totalSilverVal + cash + business;
+
+      // Zakatable wealth must be at or above nisab (silver's value)
+      const nisabValue = nisab_silver * silverprice;
+
+      let explanation = "";
+      let zakat = 0;
+      let due = false;
+
+      if (gold > 0 && silver === 0 && cash === 0 && business === 0) {
+        // Only gold
+        if (gold >= nisab_gold) {
+          zakat = totalGoldVal * 0.025;
+          due = true;
+          explanation = "آپ کے پاس صرف سونا ہے اور اس کی مقدار نصاب سے زیادہ ہے۔";
+        } else {
+          explanation = "آپ کے پاس سونا نصاب سے کم ہے، اس پر زکوة واجب نہیں۔";
+        }
+      } else if (silver > 0 && gold === 0 && cash === 0 && business === 0) {
+        // Only silver
+        if (silver >= nisab_silver) {
+          zakat = totalSilverVal * 0.025;
+          due = true;
+          explanation = "آپ کے پاس صرف چاندی ہے اور اس کی مقدار نصاب سے زیادہ ہے۔";
+        } else {
+          explanation = "آپ کے پاس چاندی نصاب سے کم ہے، اس پر زکوة واجب نہیں۔";
+        }
+      } else {
+        // Combination or other
+        if (totalZakatable >= nisabValue) {
+          zakat = totalZakatable * 0.025;
+          due = true;
+          explanation = "آپ کے کل مالیت نصاب سے زیادہ ہے۔";
+        } else {
+          explanation = "آپ کے کل مالیت نصاب سے کم ہے، زکوة واجب نہیں۔";
+        }
+      }
+
+      let msg = `<strong>وضاحت:</strong> ${explanation}<br>`;
+      msg += `<strong>کل مالیت:</strong> ${totalZakatable.toLocaleString()} روپے<br>`;
+      msg += `<strong>نصاب (چاندی):</strong> ${nisabValue.toLocaleString()} روپے<br>`;
+      if (due)
+        msg += `<strong>واجب الادا زکوة (۲.۵٪):</strong> <span style="color:#185d22">${zakat.toLocaleString()} روپے</span>`;
+      else
+        msg += `<strong style="color:#a65100">اس وقت آپ پر زکوة واجب نہیں۔</strong>`;
+
+      showResult(msg, due);
+
+      if (saveHistory) saveHistoryEntry({
+        date: new Date().toLocaleDateString('ur-PK'),
+        assets: `سونا: ${gold.toFixed(2)} تولہ، چاندی: ${silver.toFixed(2)} تولہ، نقد: ${cash}، کاروبار: ${business}`,
+        prices: `سونا: ${goldprice}، چاندی: ${silverprice}`,
+        total: totalZakatable,
+        zakat: due ? zakat : 0
+      });
+
+      // Alerts if enabled
+      checkNisabAlert(due, totalZakatable, nisabValue);
+      return {due, zakat, totalZakatable, nisabValue};
+    }
+
+    function saveHistoryEntry(entry) {
+      const tx = db.transaction("history", "readwrite");
+      tx.objectStore("history").add(entry);
+      tx.oncomplete = loadHistory;
+    }
+
+    function loadHistory() {
+      const table = document.getElementById("history-table").querySelector("tbody");
+      table.innerHTML = "";
+      const tx = db.transaction("history", "readonly");
+      const req = tx.objectStore("history").openCursor(null, "prev");
+      req.onsuccess = (e) => {
+        const cursor = e.target.result;
+        if (cursor) {
+          const d = cursor.value;
+          table.innerHTML += `<tr>
+            <td>${d.date}</td>
+            <td>${d.assets}</td>
+            <td>${d.prices}</td>
+            <td>${d.total.toLocaleString()} روپے</td>
+            <td>${d.zakat ? d.zakat.toLocaleString()+" روپے" : "-"}</td>
+          </tr>`;
+          cursor.continue();
+        }
+      };
+    }
+
+    // Zakat Yearly Reminder System
+    function checkZakatDue() {
+      const tx = db.transaction("settings", "readonly");
+      tx.objectStore("settings").get("zakat-date").onsuccess = (e) => {
+        const dateStr = e.target.result ? e.target.result.value : null;
+        if (!dateStr) return;
+        const today = new Date();
+        const thisYear = today.getFullYear();
+        const zakatDate = new Date(dateStr);
+        zakatDate.setFullYear(thisYear);
+        // If date has passed this year, show alert for next year
+        if (today > zakatDate) zakatDate.setFullYear(thisYear + 1);
+        const daysLeft = Math.ceil((zakatDate - today) / (1000 * 60 * 60 * 24));
+        if (daysLeft === 0) {
+          showBanner("آج آپ کی زکوة کا دن ہے! حساب لگائیں اور ادائیگی کریں۔");
+          sendNotification("یاد دہانی: آج آپ کی زکوة کا دن ہے!");
+        } else if (daysLeft <= 7 && daysLeft > 0) {
+          showBanner(`زکوة کی تاریخ میں ${daysLeft} دن باقی ہیں۔`);
+        }
+      };
+    }
+
+    // Browser Notification
+    function sendNotification(msg) {
+      if (Notification && Notification.permission === "granted") {
+        new Notification("زکوة کیلکولیٹر", {body: msg, icon: ""});
+      }
+    }
+
+    // Alerts for price/nisab
+    let lastGoldPrice = null, lastSilverPrice = null;
+    function checkNisabAlert(due, total, nisabVal) {
+      if (!document.getElementById("alert-nisab").checked) return;
+      if (due && total && nisabVal && total >= nisabVal) {
+        sendNotification("مبارک ہو! آپ کی مالیت نصاب تک پہنچ گئی ہے، زکوة واجب ہو گئی ہے۔");
+      }
+    }
+
+    // Listen for price field changes for alert
+    document.getElementById("goldprice").addEventListener("change", function() {
+      if (!document.getElementById("alert-price").checked) return;
+      const price = parseFloat(this.value) || 0;
+      if (lastGoldPrice && price !== lastGoldPrice) {
+        showBanner("سونے کے ریٹ میں تبدیلی آگئی ہے۔");
+        sendNotification("سونے کے ریٹ میں تبدیلی آگئی ہے۔");
+      }
+      lastGoldPrice = price;
+    });
+    document.getElementById("silverprice").addEventListener("change", function() {
+      if (!document.getElementById("alert-price").checked) return;
+      const price = parseFloat(this.value) || 0;
+      if (lastSilverPrice && price !== lastSilverPrice) {
+        showBanner("چاندی کے ریٹ میں تبدیلی آگئی ہے۔");
+        sendNotification("چاندی کے ریٹ میں تبدیلی آگئی ہے۔");
+      }
+      lastSilverPrice = price;
+    });
+
+    // Periodically check for zakat date
+    setInterval(checkZakatDue, 3600 * 1000); // hourly
+
+  </script>
+</body>
+</html>
