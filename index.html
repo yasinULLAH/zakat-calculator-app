@@ -971,7 +971,6 @@
             background-color: var(--secondary-color);
         }
 
-        /* Styles for the Zakat Installment Planner */
         #upcoming-installments-area h3 {
             border-bottom: 2px solid var(--primary-color);
             padding-bottom: 0.5rem;
@@ -1015,8 +1014,6 @@
 </head>
 
 <body>
-
-
     <div id="plan-modal" class="modal-overlay no-print">
         <div class="modal-content">
             <h3>ادائیگی کا پلان بنائیں</h3>
@@ -1396,324 +1393,321 @@
                             (منہا):</label>
                         <input type="number" id="liabilities" name="liabilities" step="any" value="0" required>
                     </div>
-                    <!-- (inside #zakat-form) -->
-                <div class="form-actions full-width">
-                    <button type="submit"><i class="bi bi-play-fill"></i> حساب لگائیں
-                    </button>
-                    <button type="button" onclick="saveCalculation()" id="save-calc-btn" class="secondary"
-                        style="display:none"><i class="bi bi-save-fill"></i> حساب محفوظ کریں
-                    </button>
-                    <button type="button" id="create-plan-btn" class="secondary"
-                        style="display:none; background-color: var(--success-color);"><i
-                            class="bi bi-calendar2-week-fill"></i> ادائیگی کا پلان بنائیں</button>
+                    <div class="form-actions full-width">
+                        <button type="submit"><i class="bi bi-play-fill"></i> حساب لگائیں
+                        </button>
+                        <button type="button" onclick="saveCalculation()" id="save-calc-btn" class="secondary"
+                            style="display:none"><i class="bi bi-save-fill"></i> حساب محفوظ کریں
+                        </button>
+                        <button type="button" id="create-plan-btn" class="secondary"
+                            style="display:none; background-color: var(--success-color);"><i
+                                class="bi bi-calendar2-week-fill"></i> ادائیگی کا پلان بنائیں</button>
+                    </div>
+                </form>
+                <div id="zakat-result" class="result-area" style="display:none"></div>
+            </div>
+            <div id="payments" class="tab-content card">
+                <h2>ادائیگیوں کا ریکارڈ</h2>
+                <div id="upcoming-installments-area" style="margin-bottom: 2rem;">
                 </div>
-            </form> <!-- CORRECT: Close the form first -->
-
-            <div id="zakat-result" class="result-area" style="display:none"></div>
-
-        </div> <!-- CORRECT: Now, close the entire #calculator card div -->
-    <div id="payments" class="tab-content card">
-        <h2>ادائیگیوں کا ریکارڈ</h2>
-        <div id="upcoming-installments-area" style="margin-bottom: 2rem;">
-            <!-- Planned payments will be rendered here by JS -->
-        </div>
-        <h3>نئی ادائیگی شامل کریں</h3>
-        <form id="payment-form">
-            <div class="form-grid">
+                <h3>نئی ادائیگی شامل کریں</h3>
+                <form id="payment-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="payment-year"><i class="bi bi-calendar-check"></i> سال (جس سال کی زکوٰۃ
+                                ہے):</label>
+                            <select id="payment-year" required>
+                                <option value="">سال منتخب کریں</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="payment-amount"><i class="bi bi-cash"></i> رقم:
+                            </label>
+                            <input type="number" id="payment-amount" step="any" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="payment-date"><i class="bi bi-calendar-plus"></i> تاریخ:
+                            </label>
+                            <input type="date" id="payment-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="payment-recipient"><i class="bi bi-person-fill"></i> وصول کنندہ:
+                            </label>
+                            <input type="text" id="payment-recipient" list="recipient-suggestions">
+                            <datalist id="recipient-suggestions"></datalist>
+                            <div class="form-group">
+                                <label for="payment-impact-tag"><i class="bi bi-award-fill"></i> اثرات کا ٹیگ
+                                    (اختیاری):</label>
+                                <select id="payment-impact-tag">
+                                    <option value="none">منتخب کریں</option>
+                                    <option value="خوراک/راشن">خوراک/راشن</option>
+                                    <option value="تعلیم">تعلیم</option>
+                                    <option value="صحت/علاج">صحت/علاج</option>
+                                    <option value="یتیموں کی کفالت">یتیموں کی کفالت</option>
+                                    <option value="قرض کی ادائیگی">قرض کی ادائیگی</option>
+                                    <option value="عمومی مدد">عمومی مدد</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="payment-category"><i class="bi bi-tags-fill"></i> کیٹیگری:
+                            </label>
+                            <input type="text" id="payment-category" placeholder="مثلاً: غریب، رشتہ دار، ادارہ">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="payment-notes"><i class="bi bi-pencil-square"></i> نوٹس:</label>
+                            <textarea id="payment-notes"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit"><i class="bi bi-plus-circle-fill"></i> ادائیگی محفوظ کریں
+                        </button>
+                    </div>
+                </form>
+                <h3 class="table-header">ادائیگیوں کی تفصیل</h3>
                 <div class="form-group">
-                    <label for="payment-year"><i class="bi bi-calendar-check"></i> سال (جس سال کی زکوٰۃ
-                        ہے):</label>
-                    <select id="payment-year" required>
+                    <label for="payment-history-year-filter">سال کے لحاظ سے فلٹر کریں:
+                    </label>
+                    <select id="payment-history-year-filter" onchange="renderPaymentHistory()">
+                        <option value="">تمام سال</option>
+                    </select>
+                </div>
+                <div class="table-container">
+                    <table id="payment-history-list">
+                        <thead>
+                            <tr>
+                                <th>سال</th>
+                                <th>تاریخ</th>
+                                <th>رقم</th>
+                                <th>وصول کنندہ</th>
+                                <th>کیٹیگری</th>
+                                <th>نوٹس</th>
+                                <th>عمل</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payment-history-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="history" class="tab-content card">
+                <h2>حساب کتاب کی تاریخ</h2>
+                <div id="history-list">
+                    <p class="placeholder-text">کوئی حسابی ریکارڈ موجود نہیں ہے۔</p>
+                </div>
+            </div>
+            <div id="reports" class="tab-content card">
+                <h2>رپورٹس</h2>
+                <div class="form-group no-print">
+                    <label for="report-year-filter">سالانہ رپورٹ دیکھیں:</label>
+                    <select id="report-year-filter" onchange="generateReport()">
                         <option value="">سال منتخب کریں</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label for="payment-amount"><i class="bi bi-cash"></i> رقم:
-                    </label>
-                    <input type="number" id="payment-amount" step="any" required>
+                <div id="report-area" style="display:none"></div>
+                <div class="report-actions no-print">
+                    <button onclick="window.print()"><i class="bi bi-printer-fill"></i> رپورٹ پرنٹ کریں</button>
                 </div>
-                <div class="form-group">
-                    <label for="payment-date"><i class="bi bi-calendar-plus"></i> تاریخ:
-                    </label>
-                    <input type="date" id="payment-date" required>
+                <div class="chart-container card no-print" style="margin-top:2rem">
+                    <h3>سالانہ زکوٰۃ کا موازنہ</h3>
+                    <canvas id="yearly-comparison-chart"></canvas>
+                    <p id="yearly-chart-placeholder" class="placeholder-text">موازنہ کے لیے کم از کم ایک سال کا ڈیٹا
+                        درکار ہے۔</p>
                 </div>
-                <div class="form-group">
-                    <label for="payment-recipient"><i class="bi bi-person-fill"></i> وصول کنندہ:
-                    </label>
-                    <input type="text" id="payment-recipient" list="recipient-suggestions">
-                    <datalist id="recipient-suggestions"></datalist>
-                    <div class="form-group">
-                        <label for="payment-impact-tag"><i class="bi bi-award-fill"></i> اثرات کا ٹیگ
-                            (اختیاری):</label>
-                        <select id="payment-impact-tag">
-                            <option value="none">منتخب کریں</option>
-                            <option value="خوراک/راشن">خوراک/راشن</option>
-                            <option value="تعلیم">تعلیم</option>
-                            <option value="صحت/علاج">صحت/علاج</option>
-                            <option value="یتیموں کی کفالت">یتیموں کی کفالت</option>
-                            <option value="قرض کی ادائیگی">قرض کی ادائیگی</option>
-                            <option value="عمومی مدد">عمومی مدد</option>
-                        </select>
+                <h3 class="section-header no-print">ڈیٹا ایکسپورٹ / امپورٹ</h3>
+                <div class="data-actions no-print">
+                    <button onclick="exportData()"><i class="bi bi-download"></i> ڈیٹا ایکسپورٹ کریں (JSON)</button>
+                    <div class="import-group">
+                        <label for="import-file" class="button-like-label"><i class="bi bi-upload"></i> فائل منتخب
+                            کریں...</label>
+                        <input type="file" id="import-file" accept=".json" onchange="importData()"><span
+                            id="import-filename">کوئی فائل منتخب
+                            نہیں</span>
                     </div>
                 </div>
-                <div class="form-group full-width">
-                    <label for="payment-category"><i class="bi bi-tags-fill"></i> کیٹیگری:
-                    </label>
-                    <input type="text" id="payment-category" placeholder="مثلاً: غریب، رشتہ دار، ادارہ">
+            </div>
+            <div id="info" class="tab-content card">
+                <h2>زکوٰۃ کے بارے میں</h2>
+                <div class="lang-switcher no-print">
+                    <button class="lang-btn active" data-lang="ur">اردو</button>
+                    <button class="lang-btn" data-lang="en">English</button>
+                    <button class="lang-btn" data-lang="ar">العربية</button>
+                    <button class="lang-btn" data-lang="ps">پښتو</button>
                 </div>
-                <div class="form-group full-width">
-                    <label for="payment-notes"><i class="bi bi-pencil-square"></i> نوٹس:</label>
-                    <textarea id="payment-notes"></textarea>
+                <div id="lang-ur" class="lang-content active">
+                    <details>
+                        <summary>زکوٰۃ کا حساب لگانے کا طریقہ</summary>
+                        <p><strong>نصاب کا تعین:</strong></p>
+                        <ul>
+                            <li>اگر آپ کے پاس صرف سونا ہے اور وہ 7.5 تولے (87.48 گرام) یا اس سے زیادہ ہے، تو آپ صاحبِ
+                                نصاب ہیں۔</li>
+                            <li>اگر آپ کے پاس صرف چاندی ہے اور وہ 52.5 تولے (612.36 گرام) یا اس سے زیادہ ہے، تو آپ صاحبِ
+                                نصاب ہیں۔</li>
+                            <li>اگر آپ کے پاس ملا جلا مال (سونا، چاندی، نقد رقم، مالِ تجارت) ہے، تو نصاب کا تعین 52.5
+                                تولے چاندی کی موجودہ قیمت سے کیا جائے گا۔ اگر آپ کے تمام قابلِ زکوٰۃ اثاثوں کی مجموعی
+                                مالیت اس قیمت سے زیادہ ہے، تو آپ صاحبِ
+                                نصاب ہیں۔ (یہ سب سے عام صورتحال ہے)۔
+                            </li>
+                        </ul>
+                        <p><strong>قابلِ زکوٰۃ اثاثے:</strong> سونا، چاندی، نقد رقم، مالِ تجارت (فروخت کی نیت سے خریدا
+                            گیا سامان)، وصول طلب قرضے (جن کی واپسی کی امید ہو)۔</p>
+                        <p><strong>واجب الادا قرضے:</strong> زکوٰۃ کا حساب کرتے وقت، آپ اپنے کل قابلِ زکوٰۃ اثاثوں میں
+                            سے اپنی فوری واجب الادا ذمہ داریاں اور قرضے منہا کر سکتے ہیں۔</p>
+                        <p><strong>زکوٰۃ کی شرح:</strong> اگر آپ صاحبِ نصاب ہیں اور آپ کے اثاثوں پر ایک قمری سال گزر چکا
+                            ہے، تو واجب الادا قرضے منہا کرنے کے بعد بچنے والی رقم کا 2.5 فیصد بطور زکوٰۃ ادا کرنا ہوگا۔
+                        </p>
+                        <p><strong>سال کا پورا ہونا (حول):</strong> زکوٰۃ اس مال پر واجب ہوتی ہے جو نصاب تک پہنچ جائے
+                            اور اس پر ایک پورا قمری سال (تقریباً 354 دن) گزر جائے۔ جس تاریخ کو آپ پہلی بار صاحبِ نصاب
+                            بنے تھے، وہی آپ کی زکوٰۃ کی سالانہ تاریخ ہے۔</p>
+                    </details>
+                    <details>
+                        <summary>زکوٰۃ کس کو دی جا سکتی ہے؟</summary>
+                        <p>قرآن مجید (سورۃ التوبہ، آیت 60) میں آٹھ قسم کے لوگوں کا ذکر ہے جنہیں زکوٰۃ دی جا سکتی ہے:
+                            فقراء (غریب)، مساکین (انتہائی ضرورت مند)، عاملین (زکوٰۃ جمع کرنے والے)، مؤلفۃ القلوب (نئے
+                            مسلمان)، رقاب (غلاموں کو آزاد کرانے کے لیے)، غارمین
+                            (قرض دار)، فی سبیل اللہ (اللہ کی راہ میں)، اور ابن السبیل (مسافر)۔</p>
+                    </details>
+                </div>
+                <div id="lang-en" class="lang-content" dir="ltr">
+                    <details>
+                        <summary>How to Calculate Zakat</summary>
+                        <p><strong>Determining Nisab (Threshold):</strong></p>
+                        <ul>
+                            <li>If you only own gold, and it is 7.5 tolas (87.48g) or more, you have met the Nisab.</li>
+                            <li>If you only own silver, and it is 52.5 tolas (612.36g) or more, you have met the Nisab.
+                            </li>
+                            <li>For mixed assets (gold, silver, cash, business goods), the Nisab is determined by the
+                                value of 52.5 tolas of silver. If the total value of your zakatable assets exceeds this,
+                                you have met the Nisab (this is the most common case).</li>
+                        </ul>
+                        <p><strong>Zakatable Assets:</strong> Gold, silver, cash, business goods (items for resale), and
+                            receivables (loans given to others that are expected to be returned).</p>
+                        <p><strong>Liabilities:</strong> When calculating Zakat, you can deduct your immediate
+                            liabilities and debts from your total zakatable assets.</p>
+                        <p><strong>Zakat Rate:</strong> If you have met the Nisab and a lunar year has passed over your
+                            wealth, you must pay 2.5% of the remaining amount after deducting liabilities.</p>
+                        <p><strong>Completion of a Year (Hawl):</strong> Zakat is due on wealth that reaches the Nisab
+                            and has been held for one full lunar year (approx. 354 days). The date you first met the
+                            Nisab becomes your annual Zakat anniversary.</p>
+                    </details>
+                    <details>
+                        <summary>Who Can Receive Zakat?</summary>
+                        <p>The Quran (Surah At-Tawbah, verse 60) specifies eight categories of people who are eligible
+                            to receive Zakat: the poor (Fuqara), the needy (Masakin), Zakat administrators (Amilin),
+                            those whose hearts are to be reconciled (Mu'allafatul Qulub), for freeing captives (Riqab),
+                            those in debt (Gharimin), in the cause of Allah (Fi Sabilillah), and the wayfarer (Ibnus
+                            Sabil).</p>
+                    </details>
+                </div>
+                <div id="lang-ar" class="lang-content">
+                    <details>
+                        <summary>كيفية حساب الزكاة</summary>
+                        <p><strong>تحديد النصاب:</strong></p>
+                        <ul>
+                            <li>إذا كنت تملك ذهباً فقط، ويزن 7.5 تولة (87.48 جرام) أو أكثر، فقد بلغت النصاب.</li>
+                            <li>إذا كنت تملك فضة فقط، وتزن 52.5 تولة (612.36 جرام) أو أكثر، فقد بلغت النصاب.</li>
+                            <li>إذا كان لديك أموال مختلطة (ذهب، فضة، نقد، عروض تجارة)، يُقدّر النصاب بقيمة 52.5 تولة من
+                                الفضة. إذا تجاوزت قيمة جميع أصولك الزكوية هذه القيمة، فأنت تبلغ النصاب (وهذه هي الحالة
+                                الأكثر شيوعًا).</li>
+                        </ul>
+                        <p><strong>الأموال الزكوية:</strong> الذهب، الفضة، النقد، عروض التجارة (البضائع المشتراة بنية
+                            البيع)، الديون التي لك على الآخرين (التي يُرجى سدادها).</p>
+                        <p><strong>الديون والالتزامات:</strong> عند حساب الزكاة، يمكنك خصم ديونك والتزاماتك واجبة السداد
+                            فورًا من إجمالي أصولك الزكوية.</p>
+                        <p><strong>نسبة الزكاة:</strong> إذا بلغت النصاب وحال عليه الحول (عام قمري كامل)، فيجب عليك دفع
+                            2.5% من المبلغ المتبقي بعد خصم الديون.</p>
+                        <p><strong>حولان الحول:</strong> تجب الزكاة على المال الذي يبلغ النصاب ويمر عليه عام قمري كامل
+                            (حوالي 354 يومًا). التاريخ الذي بلغت فيه النصاب لأول مرة هو تاريخ زكاتك السنوي.</p>
+                    </details>
+                    <details>
+                        <summary>من هم مستحقو الزكاة؟</summary>
+                        <p>حدد القرآن الكريم (سورة التوبة، الآية 60) ثمانية أصناف من الناس الذين تُصرف لهم الزكاة:
+                            الفقراء، والمساكين، والعاملين عليها، والمؤلفة قلوبهم، وفي الرقاب، والغارمين، وفي سبيل الله،
+                            وابن السبيل.</p>
+                    </details>
+                </div>
+                <div id="lang-ps" class="lang-content">
+                    <details>
+                        <summary>د زکات حسابولو طریقه</summary>
+                        <p><strong>د نصاب ټاکل:</strong></p>
+                        <ul>
+                            <li>که تاسو یوازې سره زر لرئ او هغه ۷.۵ توله (۸۷.۴۸ ګرامه) یا له هغه ډېر وي، نو تاسو د نصاب
+                                خاوند یاست.</li>
+                            <li>که تاسو یوازې سپین زر لرئ او هغه ۵۲.۵ توله (۶۱۲.۳۶ ګرامه) یا له هغه ډېر وي، نو تاسو د
+                                نصاب خاوند یاست.</li>
+                            <li>که تاسو ګډ مال لرئ (سره زر، سپین زر، نغدې پیسې، د سوداګرۍ مال)، نو نصاب به د ۵۲.۵ توله
+                                سپینو زرو په اوسني ارزښت ټاکل کیږي. که ستاسو د ټولو زکات وړ شتمنیو مجموعي ارزښت له دې
+                                څخه ډېر وي، نو تاسو د نصاب خاوند یاست (دا تر ټولو عام حالت دی).</li>
+                        </ul>
+                        <p><strong>د زکات وړ شتمنۍ:</strong> سره زر، سپین زر، نغدې پیسې، د سوداګرۍ مال (د پلور په نیت
+                            اخیستل شوی سامان)، او هغه پورونه چې د بېرته راستنېدو تمه یې وي.</p>
+                        <p><strong>پورونه:</strong> د زکات د حسابولو پر مهال، تاسو کولی شئ له خپلو ټولو زکات وړ شتمنیو
+                            څخه خپل فوري پورونه منفي کړئ.</p>
+                        <p><strong>د زکات کچه:</strong> که تاسو د نصاب خاوند یاست او ستاسو پر شتمنۍ یو قمري کال تېر شوی
+                            وي، نو د پورونو تر منفي کولو وروسته پاتې شوې پیسې ۲.۵ سلنه باید د زکات په توګه ورکړئ.</p>
+                        <p><strong>د کال پوره کېدل (حول):</strong> زکات پر هغه مال واجب دی چې نصاب ته ورسیږي او یو بشپړ
+                            قمري کال (شاوخوا ۳۵۴ ورځې) پرې تېر شي. هغه نېټه چې تاسو لومړی ځل د نصاب خاوند شوي یاست،
+                            هماغه ستاسو د زکات کلنۍ نېټه ده.</p>
+                    </details>
+                    <details>
+                        <summary>زکات چا ته ورکول کیدای شي؟</summary>
+                        <p>قرآن کریم (سورة التوبة، ۶۰ آیت) اته ډوله خلک مشخص کړي چې د زکات مستحق دي: فقراء (غریبان)،
+                            مساکین (ډېر اړمن)، عاملین (د زکات راټولوونکي)، مؤلفة القلوب (نوي مسلمانان)، رقاب (د غلامانو
+                            ازادولو لپاره)، غارمین (پوروړي)، فی سبیل الله (د الله په لاره کې)، او ابن السبیل (مسافر).
+                        </p>
+                    </details>
                 </div>
             </div>
-            <div class="form-actions">
-                <button type="submit"><i class="bi bi-plus-circle-fill"></i> ادائیگی محفوظ کریں
-                </button>
-            </div>
-        </form>
-        <h3 class="table-header">ادائیگیوں کی تفصیل</h3>
-        <div class="form-group">
-            <label for="payment-history-year-filter">سال کے لحاظ سے فلٹر کریں:
-            </label>
-            <select id="payment-history-year-filter" onchange="renderPaymentHistory()">
-                <option value="">تمام سال</option>
-            </select>
-        </div>
-        <div class="table-container">
-            <table id="payment-history-list">
-                <thead>
-                    <tr>
-                        <th>سال</th>
-                        <th>تاریخ</th>
-                        <th>رقم</th>
-                        <th>وصول کنندہ</th>
-                        <th>کیٹیگری</th>
-                        <th>نوٹس</th>
-                        <th>عمل</th>
-                    </tr>
-                </thead>
-                <tbody id="payment-history-table-body"></tbody>
-            </table>
-        </div>
-    </div>
-    <div id="history" class="tab-content card">
-        <h2>حساب کتاب کی تاریخ</h2>
-        <div id="history-list">
-            <p class="placeholder-text">کوئی حسابی ریکارڈ موجود نہیں ہے۔</p>
-        </div>
-    </div>
-    <div id="reports" class="tab-content card">
-        <h2>رپورٹس</h2>
-        <div class="form-group no-print">
-            <label for="report-year-filter">سالانہ رپورٹ دیکھیں:</label>
-            <select id="report-year-filter" onchange="generateReport()">
-                <option value="">سال منتخب کریں</option>
-            </select>
-        </div>
-        <div id="report-area" style="display:none"></div>
-        <div class="report-actions no-print">
-            <button onclick="window.print()"><i class="bi bi-printer-fill"></i> رپورٹ پرنٹ کریں</button>
-        </div>
-        <div class="chart-container card no-print" style="margin-top:2rem">
-            <h3>سالانہ زکوٰۃ کا موازنہ</h3>
-            <canvas id="yearly-comparison-chart"></canvas>
-            <p id="yearly-chart-placeholder" class="placeholder-text">موازنہ کے لیے کم از کم ایک سال کا ڈیٹا
-                درکار ہے۔</p>
-        </div>
-        <h3 class="section-header no-print">ڈیٹا ایکسپورٹ / امپورٹ</h3>
-        <div class="data-actions no-print">
-            <button onclick="exportData()"><i class="bi bi-download"></i> ڈیٹا ایکسپورٹ کریں (JSON)</button>
-            <div class="import-group">
-                <label for="import-file" class="button-like-label"><i class="bi bi-upload"></i> فائل منتخب
-                    کریں...</label>
-                <input type="file" id="import-file" accept=".json" onchange="importData()"><span
-                    id="import-filename">کوئی فائل منتخب
-                    نہیں</span>
-            </div>
-        </div>
-    </div>
-    <div id="info" class="tab-content card">
-        <h2>زکوٰۃ کے بارے میں</h2>
-        <div class="lang-switcher no-print">
-            <button class="lang-btn active" data-lang="ur">اردو</button>
-            <button class="lang-btn" data-lang="en">English</button>
-            <button class="lang-btn" data-lang="ar">العربية</button>
-            <button class="lang-btn" data-lang="ps">پښتو</button>
-        </div>
-        <div id="lang-ur" class="lang-content active">
-            <details>
-                <summary>زکوٰۃ کا حساب لگانے کا طریقہ</summary>
-                <p><strong>نصاب کا تعین:</strong></p>
-                <ul>
-                    <li>اگر آپ کے پاس صرف سونا ہے اور وہ 7.5 تولے (87.48 گرام) یا اس سے زیادہ ہے، تو آپ صاحبِ
-                        نصاب ہیں۔</li>
-                    <li>اگر آپ کے پاس صرف چاندی ہے اور وہ 52.5 تولے (612.36 گرام) یا اس سے زیادہ ہے، تو آپ صاحبِ
-                        نصاب ہیں۔</li>
-                    <li>اگر آپ کے پاس ملا جلا مال (سونا، چاندی، نقد رقم، مالِ تجارت) ہے، تو نصاب کا تعین 52.5
-                        تولے چاندی کی موجودہ قیمت سے کیا جائے گا۔ اگر آپ کے تمام قابلِ زکوٰۃ اثاثوں کی مجموعی
-                        مالیت اس قیمت سے زیادہ ہے، تو آپ صاحبِ
-                        نصاب ہیں۔ (یہ سب سے عام صورتحال ہے)۔
-                    </li>
-                </ul>
-                <p><strong>قابلِ زکوٰۃ اثاثے:</strong> سونا، چاندی، نقد رقم، مالِ تجارت (فروخت کی نیت سے خریدا
-                    گیا سامان)، وصول طلب قرضے (جن کی واپسی کی امید ہو)۔</p>
-                <p><strong>واجب الادا قرضے:</strong> زکوٰۃ کا حساب کرتے وقت، آپ اپنے کل قابلِ زکوٰۃ اثاثوں میں
-                    سے اپنی فوری واجب الادا ذمہ داریاں اور قرضے منہا کر سکتے ہیں۔</p>
-                <p><strong>زکوٰۃ کی شرح:</strong> اگر آپ صاحبِ نصاب ہیں اور آپ کے اثاثوں پر ایک قمری سال گزر چکا
-                    ہے، تو واجب الادا قرضے منہا کرنے کے بعد بچنے والی رقم کا 2.5 فیصد بطور زکوٰۃ ادا کرنا ہوگا۔
-                </p>
-                <p><strong>سال کا پورا ہونا (حول):</strong> زکوٰۃ اس مال پر واجب ہوتی ہے جو نصاب تک پہنچ جائے
-                    اور اس پر ایک پورا قمری سال (تقریباً 354 دن) گزر جائے۔ جس تاریخ کو آپ پہلی بار صاحبِ نصاب
-                    بنے تھے، وہی آپ کی زکوٰۃ کی سالانہ تاریخ ہے۔</p>
-            </details>
-            <details>
-                <summary>زکوٰۃ کس کو دی جا سکتی ہے؟</summary>
-                <p>قرآن مجید (سورۃ التوبہ، آیت 60) میں آٹھ قسم کے لوگوں کا ذکر ہے جنہیں زکوٰۃ دی جا سکتی ہے:
-                    فقراء (غریب)، مساکین (انتہائی ضرورت مند)، عاملین (زکوٰۃ جمع کرنے والے)، مؤلفۃ القلوب (نئے
-                    مسلمان)، رقاب (غلاموں کو آزاد کرانے کے لیے)، غارمین
-                    (قرض دار)، فی سبیل اللہ (اللہ کی راہ میں)، اور ابن السبیل (مسافر)۔</p>
-            </details>
-        </div>
-        <div id="lang-en" class="lang-content" dir="ltr">
-            <details>
-                <summary>How to Calculate Zakat</summary>
-                <p><strong>Determining Nisab (Threshold):</strong></p>
-                <ul>
-                    <li>If you only own gold, and it is 7.5 tolas (87.48g) or more, you have met the Nisab.</li>
-                    <li>If you only own silver, and it is 52.5 tolas (612.36g) or more, you have met the Nisab.
-                    </li>
-                    <li>For mixed assets (gold, silver, cash, business goods), the Nisab is determined by the
-                        value of 52.5 tolas of silver. If the total value of your zakatable assets exceeds this,
-                        you have met the Nisab (this is the most common case).</li>
-                </ul>
-                <p><strong>Zakatable Assets:</strong> Gold, silver, cash, business goods (items for resale), and
-                    receivables (loans given to others that are expected to be returned).</p>
-                <p><strong>Liabilities:</strong> When calculating Zakat, you can deduct your immediate
-                    liabilities and debts from your total zakatable assets.</p>
-                <p><strong>Zakat Rate:</strong> If you have met the Nisab and a lunar year has passed over your
-                    wealth, you must pay 2.5% of the remaining amount after deducting liabilities.</p>
-                <p><strong>Completion of a Year (Hawl):</strong> Zakat is due on wealth that reaches the Nisab
-                    and has been held for one full lunar year (approx. 354 days). The date you first met the
-                    Nisab becomes your annual Zakat anniversary.</p>
-            </details>
-            <details>
-                <summary>Who Can Receive Zakat?</summary>
-                <p>The Quran (Surah At-Tawbah, verse 60) specifies eight categories of people who are eligible
-                    to receive Zakat: the poor (Fuqara), the needy (Masakin), Zakat administrators (Amilin),
-                    those whose hearts are to be reconciled (Mu'allafatul Qulub), for freeing captives (Riqab),
-                    those in debt (Gharimin), in the cause of Allah (Fi Sabilillah), and the wayfarer (Ibnus
-                    Sabil).</p>
-            </details>
-        </div>
-        <div id="lang-ar" class="lang-content">
-            <details>
-                <summary>كيفية حساب الزكاة</summary>
-                <p><strong>تحديد النصاب:</strong></p>
-                <ul>
-                    <li>إذا كنت تملك ذهباً فقط، ويزن 7.5 تولة (87.48 جرام) أو أكثر، فقد بلغت النصاب.</li>
-                    <li>إذا كنت تملك فضة فقط، وتزن 52.5 تولة (612.36 جرام) أو أكثر، فقد بلغت النصاب.</li>
-                    <li>إذا كان لديك أموال مختلطة (ذهب، فضة، نقد، عروض تجارة)، يُقدّر النصاب بقيمة 52.5 تولة من
-                        الفضة. إذا تجاوزت قيمة جميع أصولك الزكوية هذه القيمة، فأنت تبلغ النصاب (وهذه هي الحالة
-                        الأكثر شيوعًا).</li>
-                </ul>
-                <p><strong>الأموال الزكوية:</strong> الذهب، الفضة، النقد، عروض التجارة (البضائع المشتراة بنية
-                    البيع)، الديون التي لك على الآخرين (التي يُرجى سدادها).</p>
-                <p><strong>الديون والالتزامات:</strong> عند حساب الزكاة، يمكنك خصم ديونك والتزاماتك واجبة السداد
-                    فورًا من إجمالي أصولك الزكوية.</p>
-                <p><strong>نسبة الزكاة:</strong> إذا بلغت النصاب وحال عليه الحول (عام قمري كامل)، فيجب عليك دفع
-                    2.5% من المبلغ المتبقي بعد خصم الديون.</p>
-                <p><strong>حولان الحول:</strong> تجب الزكاة على المال الذي يبلغ النصاب ويمر عليه عام قمري كامل
-                    (حوالي 354 يومًا). التاريخ الذي بلغت فيه النصاب لأول مرة هو تاريخ زكاتك السنوي.</p>
-            </details>
-            <details>
-                <summary>من هم مستحقو الزكاة؟</summary>
-                <p>حدد القرآن الكريم (سورة التوبة، الآية 60) ثمانية أصناف من الناس الذين تُصرف لهم الزكاة:
-                    الفقراء، والمساكين، والعاملين عليها، والمؤلفة قلوبهم، وفي الرقاب، والغارمين، وفي سبيل الله،
-                    وابن السبيل.</p>
-            </details>
-        </div>
-        <div id="lang-ps" class="lang-content">
-            <details>
-                <summary>د زکات حسابولو طریقه</summary>
-                <p><strong>د نصاب ټاکل:</strong></p>
-                <ul>
-                    <li>که تاسو یوازې سره زر لرئ او هغه ۷.۵ توله (۸۷.۴۸ ګرامه) یا له هغه ډېر وي، نو تاسو د نصاب
-                        خاوند یاست.</li>
-                    <li>که تاسو یوازې سپین زر لرئ او هغه ۵۲.۵ توله (۶۱۲.۳۶ ګرامه) یا له هغه ډېر وي، نو تاسو د
-                        نصاب خاوند یاست.</li>
-                    <li>که تاسو ګډ مال لرئ (سره زر، سپین زر، نغدې پیسې، د سوداګرۍ مال)، نو نصاب به د ۵۲.۵ توله
-                        سپینو زرو په اوسني ارزښت ټاکل کیږي. که ستاسو د ټولو زکات وړ شتمنیو مجموعي ارزښت له دې
-                        څخه ډېر وي، نو تاسو د نصاب خاوند یاست (دا تر ټولو عام حالت دی).</li>
-                </ul>
-                <p><strong>د زکات وړ شتمنۍ:</strong> سره زر، سپین زر، نغدې پیسې، د سوداګرۍ مال (د پلور په نیت
-                    اخیستل شوی سامان)، او هغه پورونه چې د بېرته راستنېدو تمه یې وي.</p>
-                <p><strong>پورونه:</strong> د زکات د حسابولو پر مهال، تاسو کولی شئ له خپلو ټولو زکات وړ شتمنیو
-                    څخه خپل فوري پورونه منفي کړئ.</p>
-                <p><strong>د زکات کچه:</strong> که تاسو د نصاب خاوند یاست او ستاسو پر شتمنۍ یو قمري کال تېر شوی
-                    وي، نو د پورونو تر منفي کولو وروسته پاتې شوې پیسې ۲.۵ سلنه باید د زکات په توګه ورکړئ.</p>
-                <p><strong>د کال پوره کېدل (حول):</strong> زکات پر هغه مال واجب دی چې نصاب ته ورسیږي او یو بشپړ
-                    قمري کال (شاوخوا ۳۵۴ ورځې) پرې تېر شي. هغه نېټه چې تاسو لومړی ځل د نصاب خاوند شوي یاست،
-                    هماغه ستاسو د زکات کلنۍ نېټه ده.</p>
-            </details>
-            <details>
-                <summary>زکات چا ته ورکول کیدای شي؟</summary>
-                <p>قرآن کریم (سورة التوبة، ۶۰ آیت) اته ډوله خلک مشخص کړي چې د زکات مستحق دي: فقراء (غریبان)،
-                    مساکین (ډېر اړمن)، عاملین (د زکات راټولوونکي)، مؤلفة القلوب (نوي مسلمانان)، رقاب (د غلامانو
-                    ازادولو لپاره)، غارمین (پوروړي)، فی سبیل الله (د الله په لاره کې)، او ابن السبیل (مسافر).
-                </p>
-            </details>
-        </div>
-    </div>
-    <div id="settings" class="tab-content card">
-        <h2>سیٹنگز</h2>
-        <form id="settings-form">
-            <div class="form-grid single-col">
-                <div class="form-group">
-                    <label for="gold-price"><i class="bi bi-currency-dollar"></i> سونے کی قیمت (فی تولہ، 24
-                        کیرٹ):</label>
-                    <input type="number" id="gold-price" step="any" required>
+            <div id="settings" class="tab-content card">
+                <h2>سیٹنگز</h2>
+                <form id="settings-form">
+                    <div class="form-grid single-col">
+                        <div class="form-group">
+                            <label for="gold-price"><i class="bi bi-currency-dollar"></i> سونے کی قیمت (فی تولہ، 24
+                                کیرٹ):</label>
+                            <input type="number" id="gold-price" step="any" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="silver-price"><i class="bi bi-currency-dollar"></i> چاندی کی قیمت (فی
+                                تولہ):</label>
+                            <input type="number" id="silver-price" step="any" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="currency-symbol"><i class="bi bi-translate"></i> کرنسی کی علامت:
+                            </label>
+                            <input type="text" id="currency-symbol" value="PKR" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="calculation-method"><i class="bi bi-intersect"></i> حساب کا طریقہ:</label>
+                            <select id="calculation-method" name="calculation-method">
+                                <option value="value" selected>بذریعہ قیمت (ضم بالقيمة)</option>
+                                <option value="quantity">بذریعہ اجزاء (ضم بالاجزاء)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="zakat-anniversary"><i class="bi bi-calendar-heart"></i> زکوٰۃ کی سالگرہ کی
+                                تاریخ:</label>
+                            <input type="date" id="zakat-anniversary">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit"><i class="bi bi-check-lg"></i> سیٹنگز محفوظ کریں</button>
+                        <button type="button" id="fetch-prices-btn" class="secondary"><i
+                                class="bi bi-cloud-download"></i> تازہ
+                            ترین قیمتیں حاصل کریں</button>
+                    </div>
+                </form>
+                <h3 class="section-header no-print">اطلاعات (Notifications)</h3>
+                <div class="data-actions no-print">
+                    <button id="enable-notifications-btn"><i class="bi bi-bell-fill"></i> یاد دہانی کے لیے اطلاعات فعال
+                        کریں</button>
                 </div>
-                <div class="form-group">
-                    <label for="silver-price"><i class="bi bi-currency-dollar"></i> چاندی کی قیمت (فی
-                        تولہ):</label>
-                    <input type="number" id="silver-price" step="any" required>
-                </div>
-                <div class="form-group">
-                    <label for="currency-symbol"><i class="bi bi-translate"></i> کرنسی کی علامت:
-                    </label>
-                    <input type="text" id="currency-symbol" value="PKR" required>
-                </div>
-                <div class="form-group">
-                    <label for="calculation-method"><i class="bi bi-intersect"></i> حساب کا طریقہ:</label>
-                    <select id="calculation-method" name="calculation-method">
-                        <option value="value">بذریعہ قیمت (ضم بالقيمة)</option>
-                        <option value="quantity">بذریعہ اجزاء (ضم بالاجزاء)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="zakat-anniversary"><i class="bi bi-calendar-heart"></i> زکوٰۃ کی سالگرہ کی
-                        تاریخ:</label>
-                    <input type="date" id="zakat-anniversary">
+                <h3 class="section-header no-print">ایپلی کیشن</h3>
+                <div class="data-actions no-print">
+                    <button id="clear-data-btn" class="danger"><i class="bi bi-trash3-fill"></i> تمام ڈیٹا حذف
+                        کریں</button>
                 </div>
             </div>
-            <div class="form-actions">
-                <button type="submit"><i class="bi bi-check-lg"></i> سیٹنگز محفوظ کریں</button>
-                <button type="button" id="fetch-prices-btn" class="secondary"><i class="bi bi-cloud-download"></i> تازہ
-                    ترین قیمتیں حاصل کریں</button>
-            </div>
-        </form>
-        <h3 class="section-header no-print">اطلاعات (Notifications)</h3>
-        <div class="data-actions no-print">
-            <button id="enable-notifications-btn"><i class="bi bi-bell-fill"></i> یاد دہانی کے لیے اطلاعات فعال
-                کریں</button>
-        </div>
-        <h3 class="section-header no-print">ایپلی کیشن</h3>
-        <div class="data-actions no-print">
-            <button id="clear-data-btn" class="danger"><i class="bi bi-trash3-fill"></i> تمام ڈیٹا حذف
-                کریں</button>
-        </div>
-    </div>
-    </main>
+        </main>
     </div>
     <div id="toast-container"></div>
     <div id="confirmation-modal" class="modal-overlay no-print">
@@ -1755,7 +1749,7 @@
                 currencySymbol: 'PKR',
                 zakatAnniversary: null,
                 zakatAnniversaryIslamic: null,
-                calculationMethod: 'quantity'
+                calculationMethod: 'value'
             },
             currentCalculationResult: null,
             isEditingPayment: null,
@@ -1864,54 +1858,49 @@
             updatePriceInfoInCalculator()
         }
         async function createInstallmentPlan() {
-            const { year, zakatAmount } = appState.activePlan;
+            const { year, totalAmount: zakatAmount } = appState.activePlan;
             const frequency = document.getElementById('plan-frequency').value;
-
+            if (!zakatAmount || zakatAmount <= 0) {
+                showToast('پلان بنانے کے لیے کوئی واجب الادا رقم نہیں۔', 'error');
+                return;
+            }
             const frequencies = { 'monthly': 12, 'quarterly': 4, 'half-yearly': 2 };
             const numInstallments = frequencies[frequency];
-
-            const baseAmount = Math.floor(zakatAmount / numInstallments);
-            const remainder = zakatAmount - (baseAmount * numInstallments);
-
+            const rawBaseAmount = zakatAmount / numInstallments;
+            const roundedBaseAmount = Math.floor(rawBaseAmount * 100) / 100;
+            const totalOfRoundedInstallments = roundedBaseAmount * numInstallments;
+            const remainder = parseFloat((zakatAmount - totalOfRoundedInstallments).toFixed(2));
             const installments = [];
             let currentDate = new Date();
-
             for (let i = 0; i < numInstallments; i++) {
-                const installmentAmount = (i === numInstallments - 1) ? baseAmount + remainder : baseAmount;
-
+                const installmentAmount = (i === numInstallments - 1) ? roundedBaseAmount + remainder : roundedBaseAmount;
                 if (frequency === 'monthly') currentDate.setMonth(currentDate.getMonth() + 1);
                 else if (frequency === 'quarterly') currentDate.setMonth(currentDate.getMonth() + 3);
                 else if (frequency === 'half-yearly') currentDate.setMonth(currentDate.getMonth() + 6);
-
                 installments.push({
                     dueDate: currentDate.toISOString().slice(0, 10),
-                    amount: installmentAmount,
+                    amount: parseFloat(installmentAmount.toFixed(2)),
                     status: 'pending',
                     paymentId: null
                 });
             }
-
             const plan = {
                 year,
                 totalAmount: zakatAmount,
                 frequency,
                 installments
             };
-
             await saveData(STORES.plans, plan);
             showToast('ادائیگی کا پلان کامیابی سے بن گیا ہے۔', 'success');
             toggleModal('plan-modal', false);
-            renderUpcomingInstallments();
+            await renderUpcomingInstallments();
         }
-
         async function renderUpcomingInstallments() {
             const area = document.getElementById('upcoming-installments-area');
             const plans = await dbRequest(getStore(STORES.plans, 'readonly').getAll());
             let html = '';
-
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-
             let pendingInstallments = [];
             plans.forEach(plan => {
                 plan.installments.forEach((inst, index) => {
@@ -1920,20 +1909,16 @@
                     }
                 });
             });
-
             if (pendingInstallments.length === 0) {
                 area.innerHTML = '';
                 return;
             }
-
             pendingInstallments.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
-
             html += '<h3>آنے والی قسطیں</h3>';
             pendingInstallments.forEach(inst => {
                 const dueDate = new Date(inst.dueDate);
                 const timeDiff = dueDate.getTime() - today.getTime();
                 const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-
                 let className = 'installment-item';
                 let dateText = `مقررہ تاریخ: ${new Date(inst.dueDate).toLocaleDateString('ur-PK')}`;
                 if (daysRemaining < 0) {
@@ -1943,7 +1928,6 @@
                     className += ' due-soon';
                     dateText += ` (${daysRemaining} دن میں)`;
                 }
-
                 html += `
                     <div class="${className}">
                         <div class="installment-details">
@@ -1960,12 +1944,10 @@
             });
             area.innerHTML = html;
         }
-
         async function recordInstallmentAsPaid(year, index) {
             const plan = await dbRequest(getStore(STORES.plans, 'readonly').get(year));
             if (!plan) return;
             const installment = plan.installments[index];
-
             showConfirmation(
                 'ادائیگی کی تصدیق کریں؟',
                 `کیا آپ واقعی ${formatCurrency(installment.amount)} کی قسط کو ادا شدہ کے طور پر نشان زد کرنا چاہتے ہیں؟`,
@@ -1979,13 +1961,10 @@
                         notes: `Installment ${index + 1}/${plan.installments.length} for Zakat year ${year}.`,
                         impactTag: 'none'
                     };
-
                     const paymentId = await saveData(STORES.payments, paymentData);
-
                     plan.installments[index].status = 'paid';
                     plan.installments[index].paymentId = paymentId;
                     await saveData(STORES.plans, plan);
-
                     showToast('قسط کامیابی سے ادا ہو گئی۔', 'success');
                     await renderPaymentHistory();
                     await renderUpcomingInstallments();
@@ -2214,66 +2193,64 @@
             }
         }
         function calculateZakat(data, prices, settings) {
-            const {
-                gold,
-                silver,
-                cash,
-                businessGoods,
-                receivables,
-                liabilities,
-                goldKarat
-            } = data;
-            const {
-                goldPrice,
-                silverPrice
-            } = prices;
-            const {
-                calculationMethod
-            } = settings;
+            const { gold, silver, cash, businessGoods, receivables, liabilities, goldKarat } = data;
+            const { goldPrice, silverPrice } = prices;
             const purityFactors = { 24: 1, 22: 22 / 24, 18: 18 / 24 };
             const pureGoldWeight = gold * purityFactors[goldKarat];
+            const goldValue = pureGoldWeight * goldPrice;
+            const silverValue = silver * silverPrice;
+            const totalAssets = goldValue + silverValue + cash + businessGoods + receivables;
+            const nisabValue = 52.5 * silverPrice;
+            if (silverPrice <= 0) {
+                return { message: "چاندی کی قیمت سیٹنگز میں درکار ہے۔", isZakatDue: false, zakatAmount: 0 };
+            }
+            let isNisabMet = false;
+            let nisabDeterminationMessage = '';
+            const hasOnlyGold = gold > 0 && silver === 0 && cash === 0 && businessGoods === 0 && receivables === 0;
+            const hasOnlySilver = silver > 0 && gold === 0 && cash === 0 && businessGoods === 0 && receivables === 0;
+            if (hasOnlyGold) {
+                if (gold >= 7.5) {
+                    isNisabMet = true;
+                    nisabDeterminationMessage = `نصاب صرف سونے کی بنیاد پر مکمل ہے (7.5 تولے یا زیادہ)۔`;
+                } else {
+                    nisabDeterminationMessage = `نصاب مکمل نہیں (صرف سونا 7.5 تولے سے کم ہے)۔`;
+                }
+            } else if (hasOnlySilver) {
+                if (silver >= 52.5) {
+                    isNisabMet = true;
+                    nisabDeterminationMessage = `نصاب صرف چاندی کی بنیاد پر مکمل ہے (52.5 تولے یا زیادہ)۔`;
+                } else {
+                    nisabDeterminationMessage = `نصاب مکمل نہیں (صرف چاندی 52.5 تولے سے کم ہے)۔`;
+                }
+            } else {
+                if (totalAssets >= nisabValue) {
+                    isNisabMet = true;
+                    nisabDeterminationMessage = `نصاب بذریعہ قیمت (ملا جلا مال) مکمل ہے، کیونکہ کل اثاثوں کی مالیت (${formatCurrency(totalAssets)}) چاندی کے نصاب (${formatCurrency(nisabValue)}) سے زیادہ ہے۔`;
+                } else {
+                    nisabDeterminationMessage = `نصاب مکمل نہیں، کیونکہ کل اثاثوں کی مالیت (${formatCurrency(totalAssets)}) چاندی کے نصاب (${formatCurrency(nisabValue)}) سے کم ہے۔`;
+                }
+            }
+            const zakatableAssetsAfterLiabilities = Math.max(0, totalAssets - liabilities);
+            let zakatAmount = 0;
+            if (isNisabMet) {
+                zakatAmount = zakatableAssetsAfterLiabilities * 0.025;
+            }
             const result = {
                 inputs: data,
                 prices: prices,
-                goldValue: pureGoldWeight * goldPrice,
-                silverValue: silver * silverPrice,
-                nisabValue: 52.5 * silverPrice,
-                totalAssets: 0,
-                zakatableAssets: 0,
-                isZakatDue: false,
-                zakatAmount: 0,
-                message: ''
+                goldValue: goldValue,
+                silverValue: silverValue,
+                totalAssets: totalAssets,
+                zakatableAssets: zakatableAssetsAfterLiabilities,
+                isZakatDue: isNisabMet,
+                zakatAmount: zakatAmount,
+                message: nisabDeterminationMessage,
+                nisabValue: nisabValue
             };
-            if (silverPrice <= 0) {
-                result.message = "چاندی کی قیمت سیٹنگز میں درکار ہے۔";
-                return result;
-            }
-            result.totalAssets = result.goldValue + result.silverValue + cash + businessGoods + receivables;
-            if (gold >= 7.5 || silver >= 52.5) {
-                result.isZakatDue = true;
-                result.message = "سونے یا چاندی کا انفرادی نصاب مکمل ہے۔";
-            } else if (calculationMethod === 'quantity') {
-                const requiredSilver = 52.5 - (gold * 7);
-                if (silver >= requiredSilver && requiredSilver > 0) {
-                    result.isZakatDue = true;
-                    result.message = `نصاب بذریعہ اجزاء (ضم بالاجزاء) مکمل ہے۔ مطلوبہ چاندی (${requiredSilver.toFixed(2)} تولے) موجود ہے۔`;
-                } else {
-                    result.message = `نصاب مکمل نہیں ہے۔ مطلوبہ چاندی (${requiredSilver.toFixed(2)} تولے) موجود نہیں۔`;
-                }
-            } else {
-                if (result.totalAssets >= result.nisabValue) {
-                    result.isZakatDue = true;
-                    result.message = `نصاب بذریعہ قیمت (ضم بالقيمة) مکمل ہے (کل مالیت نصاب کی قیمت ${formatCurrency(result.nisabValue)} سے زیادہ ہے)۔`;
-                } else {
-                    result.message = `نصاب مکمل نہیں ہے (کل مالیت نصاب کی قیمت ${formatCurrency(result.nisabValue)} سے کم ہے)۔`;
-                }
-            }
-            result.zakatableAssets = Math.max(0, result.totalAssets - liabilities);
-            if (result.isZakatDue) {
-                result.zakatAmount = result.zakatableAssets * 0.025;
-            }
             appState.currentCalculationResult = {
-                year: data.year, ...data, ...prices,
+                year: data.year,
+                ...data,
+                ...prices,
                 totalAssets: result.totalAssets,
                 nisabValue: result.nisabValue,
                 zakatableAssets: result.zakatableAssets,
@@ -2283,13 +2260,11 @@
             };
             return result;
         }
-function displayCalculationResult(result) {
-    const resultArea = document.getElementById('zakat-result');
-    const saveBtn = document.getElementById('save-calc-btn');
-    const planBtn = document.getElementById('create-plan-btn');
-
-    // THIS IS THE CORRECTED PART
-    resultArea.innerHTML = `
+        function displayCalculationResult(result) {
+            const resultArea = document.getElementById('zakat-result');
+            const saveBtn = document.getElementById('save-calc-btn');
+            const planBtn = document.getElementById('create-plan-btn');
+            resultArea.innerHTML = `
         <h3>نتیجہ</h3>
         <ul>
             <li>سونے کی قیمت: ${formatCurrency(result.goldValue)}</li>
@@ -2302,19 +2277,17 @@ function displayCalculationResult(result) {
         <p><em>${result.message}</em></p>
         <h4 style="margin-top:1rem">${result.isZakatDue ? `واجب الادا زکوٰۃ: <strong>${formatCurrency(result.zakatAmount)}</strong>` : '<strong>زکوٰۃ واجب الادا نہیں ہے۔</strong>'}</h4>
     `;
-
-    resultArea.style.display = 'block';
-
-    if (result.isZakatDue) {
-        saveBtn.style.display = 'inline-flex';
-        planBtn.style.display = 'inline-flex';
-        appState.activePlan.year = result.inputs.year;
-        appState.activePlan.totalAmount = result.zakatAmount;
-    } else {
-        saveBtn.style.display = 'none';
-        planBtn.style.display = 'none';
-    }
-}
+            resultArea.style.display = 'block';
+            if (result.isZakatDue) {
+                saveBtn.style.display = 'inline-flex';
+                planBtn.style.display = 'inline-flex';
+                appState.activePlan.year = result.inputs.year;
+                appState.activePlan.totalAmount = result.zakatAmount;
+            } else {
+                saveBtn.style.display = 'none';
+                planBtn.style.display = 'none';
+            }
+        }
         async function saveCalculation() {
             if (!appState.currentCalculationResult) {
                 showToast("محفوظ کرنے کے لیے کوئی حساب موجود نہیں۔", 'error');
