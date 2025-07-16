@@ -912,10 +912,8 @@
 
         #tab-mira .bi-diagram-3-fill {
             color: #6f42c1;
-            /* A distinct color for Miras */
         }
 
-        /* Style for larger checkboxes for better visibility */
         .big-checkbox {
             width: 1.3em;
             height: 1.3em;
@@ -1039,7 +1037,6 @@
                 <h2>میراث کیلکولیٹر (Hanafi School)</h2>
                 <p>یہ کیلکولیٹر سنی حنفی فقہ کے مطابق وراثت کی تقسیم کا حساب کرتا ہے۔ براہ کرم تمام معلومات درست درج
                     کریں۔</p>
-
                 <form id="miras-form">
                     <h3 class="section-header">مرحلہ 1: ترکہ اور اخراجات</h3>
                     <div class="form-grid single-col">
@@ -1061,10 +1058,8 @@
                             <input type="number" id="miras-will" value="0" step="any">
                         </div>
                     </div>
-
                     <h3 class="section-header">مرحلہ 2: ورثاء کی تفصیل</h3>
                     <div class="form-grid">
-                        <!-- Spouse -->
                         <div class="form-group full-width"
                             style="background: #f8f9fa; padding: 1rem; border-radius: 8px;">
                             <label style="font-size: 1.2em; color: var(--primary-dark);">میاں / بیوی:</label>
@@ -1078,8 +1073,6 @@
                                 </label>
                             </div>
                         </div>
-
-                        <!-- Descendants -->
                         <div class="form-group">
                             <label for="miras-sons"><i class="bi bi-person-standing"></i> بیٹے:</label>
                             <input type="number" id="miras-sons" value="0" min="0">
@@ -1088,8 +1081,6 @@
                             <label for="miras-daughters"><i class="bi bi-person-standing-dress"></i> بیٹیاں:</label>
                             <input type="number" id="miras-daughters" value="0" min="0">
                         </div>
-
-                        <!-- Ascendants -->
                         <div class="form-group">
                             <label for="miras-father"><i class="bi bi-person-up"></i> باپ زندہ ہے؟</label>
                             <input type="checkbox" id="miras-father" class="big-checkbox">
@@ -1098,7 +1089,6 @@
                             <label for="miras-mother"><i class="bi bi-person-up"></i> ماں زندہ ہے؟</label>
                             <input type="checkbox" id="miras-mother" class="big-checkbox">
                         </div>
-
                         <div class="form-group">
                             <label for="miras-paternal-grandfather"><i class="bi bi-person-up"></i> دادا (صرف اگر باپ
                                 زندہ نہیں):</label>
@@ -1115,9 +1105,6 @@
                             <input type="checkbox" id="miras-paternal-grandmother" class="big-checkbox">
                         </div>
                         <div class="form-group"></div>
-
-
-                        <!-- Siblings -->
                         <div class="form-group">
                             <label for="miras-full-brothers"><i class="bi bi-people"></i> سگے بھائی:</label>
                             <input type="number" id="miras-full-brothers" value="0" min="0">
@@ -1140,7 +1127,6 @@
                             <input type="number" id="miras-uterine-siblings" value="0" min="0">
                         </div>
                     </div>
-
                     <h3 class="section-header">مرحلہ 3: خصوصی حالات</h3>
                     <div class="form-grid single-col">
                         <div class="form-group">
@@ -1152,14 +1138,11 @@
                                 مسلم ہے؟ (غیر مسلم وارث نہیں ہوتا)</label>
                         </div>
                     </div>
-
-
                     <div class="form-actions full-width" style="justify-content: center; margin-top: 2rem;">
                         <button type="submit" style="font-size: 1.2em; padding: 1rem 2rem;"><i
                                 class="bi bi-calculator-fill"></i> حصوں کا حساب لگائیں</button>
                     </div>
                 </form>
-
                 <div id="miras-result-area" style="display:none; margin-top: 2rem;"></div>
             </div>
             <div id="hijri-age" class="tab-content card">
@@ -2128,113 +2111,85 @@
                 console.error(error)
             }
         }
-        // A robust Fraction class using BigInt to prevent precision errors
         class Fraction {
             constructor(num, den = 1) {
                 if (typeof num !== 'bigint') num = BigInt(num);
                 if (typeof den !== 'bigint') den = BigInt(den);
-
                 this.num = num;
                 this.den = den;
                 this.simplify();
             }
-
             gcd(a, b) {
-                // Ensure inputs are non-negative for GCD
                 a = a > 0n ? a : -a;
                 b = b > 0n ? b : -b;
                 return b === 0n ? a : this.gcd(b, a % b);
             }
-
             simplify() {
-                if (this.den === 0n) return; // Division by zero
+                if (this.den === 0n) return;
                 const commonDivisor = this.gcd(this.num, this.den);
                 this.num /= commonDivisor;
                 this.den /= commonDivisor;
-                // Ensure denominator is always positive
                 if (this.den < 0n) {
                     this.num = -this.num;
                     this.den = -this.den;
                 }
             }
-
             toString() {
                 return `${this.num}/${this.den}`;
             }
-
             add(other) {
                 const newNum = this.num * other.den + other.num * this.den;
                 const newDen = this.den * other.den;
                 return new Fraction(newNum, newDen);
             }
-
             subtract(other) {
                 const newNum = this.num * other.den - other.num * this.den;
                 const newDen = this.den * other.den;
                 return new Fraction(newNum, newDen);
             }
-
             multiply(other) {
                 return new Fraction(this.num * other.num, this.den * other.den);
             }
-
             divide(other) {
                 return new Fraction(this.num * other.den, this.den * other.num);
             }
-
-            // Convert fraction to a decimal value for currency calculation
             toDecimal() {
                 if (this.den === 0n) return 0;
                 return Number(this.num) / Number(this.den);
             }
         }
-
-
         const MirasCalculator = {
             calculate: function (inputs) {
                 let log = [];
-
-                // --- Step 1: Deductions ---
                 let estate = Number(inputs.estate) || 0;
                 let funeral = Number(inputs.funeral) || 0;
                 let debt = Number(inputs.debt) || 0;
                 let willInput = Number(inputs.will) || 0;
-
                 log.push({
                     title: "ابتدائی حساب کتاب",
                     details: `کل ترکہ: ${formatCurrency(estate)}`
                 });
-
                 let estateAfterExpenses = estate - funeral - debt;
                 if (estateAfterExpenses < 0) estateAfterExpenses = 0;
-
                 let maxWill = estateAfterExpenses / 3;
                 let acceptedWill = Math.min(willInput, maxWill);
-
                 let netEstate = estateAfterExpenses - acceptedWill;
                 if (netEstate < 0) netEstate = 0;
-
                 log.push({
                     title: "اخراجات اور وصیت کی کٹوتی",
                     details: `تجہیز و تکفین: ${formatCurrency(funeral)}<br>قرض کی ادائیگی: ${formatCurrency(debt)}<br>جائز وصیت: ${formatCurrency(acceptedWill)} (زیادہ سے زیادہ ${formatCurrency(maxWill)} تک)<br><strong>تقسیم کے لیے قابلِ عمل جائیداد: ${formatCurrency(netEstate)}</strong>`
                 });
-
                 if (netEstate === 0) {
                     log.push({ title: "نتیجہ", details: "کٹوتیوں کے بعد تقسیم کے لیے کوئی جائیداد باقی نہیں ہے۔" });
                     return { log, shares: [], finalTable: [] };
                 }
-
-                // --- Step 2: Identify Heirs and Apply Hajb (Exclusion) ---
-                let h = { ...inputs.heirs }; // Heirs object
+                let h = { ...inputs.heirs };
                 let excluded = new Set();
-
                 const hasSon = h.sons > 0;
                 const hasDaughter = h.daughters > 0;
                 const hasDescendant = hasSon || hasDaughter;
                 const hasMaleDescendant = hasSon;
                 const hasFemaleDescendant = hasDaughter;
-
-                // Exclusion rules (Hajb)
                 if (hasSon) {
                     ['سگے بھائی', 'سگی بہنیں', 'باپ شریک بھائی', 'باپ شریک بہنیں', 'ماں شریک بھائی/بہنیں'].forEach(p => excluded.add(p));
                 }
@@ -2253,28 +2208,19 @@
                 if (h.pGrandfather && !h.father) {
                     ['باپ شریک بھائی', 'باپ شریک بہنیں'].forEach(p => excluded.add(p));
                 }
-
                 let hajblog = "محروم ہونے والے ورثاء (حجب):<br>";
                 hajblog += excluded.size > 0 ? [...excluded].join('، ') + ' قریب ترین وارث کی موجودگی کی وجہ سے محروم ہیں۔' : "کوئی وارث محروم نہیں ہوا۔";
                 log.push({ title: "حجب (Exclusion)", details: hajblog });
-
-                // --- Step 3: Assign Shares (Fard and Asaba) ---
                 let shares = {};
                 let asabaList = new Set();
                 const ONE = new Fraction(1, 1);
                 let fardSharesTotal = new Fraction(0, 1);
-
-                // Function to add a share and update the total
                 const addShare = (heir, fraction) => {
                     shares[heir] = fraction;
                     fardSharesTotal = fardSharesTotal.add(fraction);
                 };
-
-                // Spouse
                 if (h.husband) addShare('شوہر', hasDescendant ? new Fraction(1, 4) : new Fraction(1, 2));
                 if (h.wives > 0) addShare(`بیوی/بیاں (${h.wives})`, hasDescendant ? new Fraction(1, 8) : new Fraction(1, 4));
-
-                // Ascendants
                 if (h.mother) {
                     const hasMultipleSiblings = (h.fullBrothers + h.fullSisters + h.paternalBrothers + h.paternalSisters + h.uterineSiblings) >= 2;
                     if (hasDescendant || hasMultipleSiblings) addShare('ماں', new Fraction(1, 6));
@@ -2290,17 +2236,12 @@
                 }
                 if (h.mGrandmother && !h.mother) addShare('نانی', new Fraction(1, 6));
                 if (h.pGrandmother && !h.mother) addShare('دادی', new Fraction(1, 6));
-
-
-                // Descendants
                 if (hasSon) {
                     asabaList.add('بیٹے'); asabaList.add('بیٹیاں');
                 } else if (h.daughters > 0) {
                     if (h.daughters === 1) addShare('بیٹی (1)', new Fraction(1, 2));
                     else addShare(`بیٹیاں (${h.daughters})`, new Fraction(2, 3));
                 }
-
-                // Siblings
                 if (!hasMaleDescendant && !h.father && !h.pGrandfather) {
                     if (h.fullBrothers > 0 && !excluded.has('سگے بھائی')) { asabaList.add('سگے بھائی'); asabaList.add('سگی بہنیں'); }
                     else if (h.fullSisters > 0 && !excluded.has('سگی بہنیں')) {
@@ -2315,27 +2256,20 @@
                         else addShare(`ماں شریک بھائی/بہنیں (${h.uterineSiblings})`, new Fraction(1, 3));
                     }
                 }
-
                 let fardLog = "اصحاب الفروض (مقررہ حصے):<br>";
                 Object.keys(shares).forEach(key => { fardLog += `${key}: ${shares[key].toString()}<br>`; });
                 if (Object.keys(shares).length === 0) fardLog = "کوئی اصحاب الفروض وارث موجود نہیں۔";
                 log.push({ title: "مقررہ حصے", details: fardLog });
-
-                // --- Step 4: Awl (Reduction), Radd (Return), or Asaba Distribution ---
                 let remainder = ONE.subtract(fardSharesTotal);
-
-                // Awl (عول)
                 if (fardSharesTotal.num > fardSharesTotal.den) {
                     log.push({ title: "عول (Awl) کا اطلاق", details: `حصوں کا مجموعہ (${fardSharesTotal.toString()}) کل ترکہ سے بڑھ گیا ہے۔ تمام حصوں کو متناسب طور پر (${fardSharesTotal.toString()}) کی بنیاد پر کم کیا جائے گا۔` });
                     Object.keys(shares).forEach(key => {
                         shares[key] = shares[key].divide(fardSharesTotal);
                     });
                 }
-                // Asaba (عصبات)
                 else if (remainder.num > 0n && asabaList.size > 0) {
                     let asabaLog = "بقیہ حصہ (" + remainder.toString() + ") عصبات کو دیا جائے گا: " + [...asabaList].join(', ');
                     log.push({ title: "عصبات (Residuary)", details: asabaLog });
-
                     if (asabaList.has('بیٹے')) {
                         let parts = h.sons * 2 + h.daughters * 1;
                         if (h.sons > 0) shares['بیٹے'] = remainder.multiply(new Fraction(h.sons * 2, parts));
@@ -2350,7 +2284,6 @@
                         shares['سگی بہنیں'] = remainder;
                     }
                 }
-                // Radd (رد)
                 else if (remainder.num > 0n) {
                     let raddHeirs = {};
                     let raddTotal = new Fraction(0, 1);
@@ -2360,7 +2293,6 @@
                             raddTotal = raddTotal.add(shares[key]);
                         }
                     });
-
                     if (raddTotal.num > 0n) {
                         log.push({ title: "رد (Radd) کا اطلاق", details: `کوئی عصبہ نہیں، لہذا بچا ہوا حصہ (${remainder.toString()}) مقررہ ورثاء (ماسوائے زوجین) میں ان کے حصوں کی نسبت سے تقسیم کیا جائے گا۔` });
                         Object.keys(raddHeirs).forEach(key => {
@@ -2369,31 +2301,24 @@
                         });
                     }
                 }
-
-                // --- Final Calculation & Table Generation ---
                 let finalTable = [];
                 let totalAmount = 0;
-
                 Object.keys(shares).forEach(key => {
                     const fraction = shares[key];
                     const amount = netEstate * fraction.toDecimal();
                     totalAmount += amount;
-
                     finalTable.push({
                         heir: key,
                         share: fraction.toString(),
                         amount: formatCurrency(amount)
                     });
                 });
-
                 finalTable.push({
                     heir: 'کل تقسیم شدہ',
                     share: '',
                     amount: formatCurrency(totalAmount),
                     isTotal: true
                 });
-
-                // Add a check for any rounding discrepancies
                 if (Math.abs(netEstate - totalAmount) > 0.01 && netEstate > 0) {
                     finalTable.push({
                         heir: 'غیر تقسیم شدہ / راؤنڈنگ فرق',
@@ -2402,10 +2327,8 @@
                         isTotal: false
                     });
                 }
-
                 return { log, finalTable };
             },
-
             renderResult: function (result, resultArea) {
                 resultArea.innerHTML = '';
                 result.log.forEach(entry => {
@@ -2414,16 +2337,13 @@
                     stepDiv.innerHTML = `<h4><i class="bi bi-check2-circle"></i> ${entry.title}</h4><p>${entry.details}</p>`;
                     resultArea.appendChild(stepDiv);
                 });
-
                 if (result.finalTable && result.finalTable.length > 0) {
                     const tableDiv = document.createElement('div');
                     tableDiv.className = 'result-step';
                     let tableHTML = `<h4><i class="bi bi-table"></i> حتمی تقسیم کا جدول</h4><div class="table-container"><table id="miras-final-table"><thead><tr><th>وارث</th><th>حصہ (نسبت)</th><th>رقم</th></tr></thead><tbody>`;
-
                     result.finalTable.forEach(row => {
                         tableHTML += `<tr class="${row.isTotal ? 'total-row' : ''}"><td>${row.heir}</td><td>${row.share}</td><td>${row.amount}</td></tr>`;
                     });
-
                     tableHTML += `</tbody></table></div>`;
                     tableDiv.innerHTML = tableHTML;
                     resultArea.appendChild(tableDiv);
@@ -2432,12 +2352,9 @@
                 resultArea.scrollIntoView({ behavior: 'smooth' });
             }
         };
-
-
         function setupMirasListener() {
             document.getElementById('miras-form').addEventListener('submit', event => {
                 event.preventDefault();
-
                 const inputs = {
                     estate: document.getElementById('miras-estate').value,
                     funeral: document.getElementById('miras-funeral').value,
@@ -2464,16 +2381,13 @@
                         isNonMuslim: document.getElementById('miras-non-muslim').checked,
                     }
                 };
-
                 if (!inputs.estate) {
                     showToast('براہ کرم کل جائیداد کی رقم درج کریں۔', 'error');
                     return;
                 }
-
                 if (inputs.conditions.isKiller || inputs.conditions.isNonMuslim) {
                     showToast('نوٹ: قاتل اور غیر مسلم ورثاء کو وراثت سے خارج کر دیا جاتا ہے۔ کیلکولیشن یہ فرض کر رہی ہے کہ آپ نے ایسے ورثاء کو شمار نہیں کیا ہے۔', 'info');
                 }
-
                 const result = MirasCalculator.calculate(inputs);
                 const resultArea = document.getElementById('miras-result-area');
                 MirasCalculator.renderResult(result, resultArea);
@@ -2705,76 +2619,59 @@
             try {
                 const todayGregorianString = new Date().toISOString().slice(0, 10);
                 const currentIslamicDate = await getIslamicDateFromGregorian(todayGregorianString);
-
                 if (!currentIslamicDate) {
                     displayElement.textContent = '';
                     return;
                 }
-
                 const hijriMonths = ["محرم", "صفر", "ربیع الاول", "ربیع الثانی", "جمادی الاولی", "جمادی الآخر", "رجب", "شعبان", "رمضان", "شوال", "ذوالقعدة", "ذوالحجة"];
                 const [day, month, year] = currentIslamicDate.split('-').map(Number);
                 const formattedCurrentDate = `${day} ${hijriMonths[month - 1]} ${year}ھ`;
-
                 let displayText = `موجودہ اسلامی تاریخ: ${formattedCurrentDate}`;
-
                 const anniversaryIslamic = appState.settings.zakatAnniversaryIslamic;
                 if (anniversaryIslamic) {
                     const [annivDay, annivMonth] = anniversaryIslamic.split('-').map(Number);
                     let targetIslamicYear = year;
-
                     if (month > annivMonth || (month === annivMonth && day > annivDay)) {
                         targetIslamicYear++;
                     }
-
                     const formattedAnnivMonth = hijriMonths[annivMonth - 1];
                     const nextZakatDate = `${annivDay} ${formattedAnnivMonth} ${targetIslamicYear}ھ`;
                     displayText += ` (آپکی اگلی زکوٰۃ: ${nextZakatDate})`;
                 }
-
                 displayElement.textContent = displayText;
-
             } catch (error) {
                 console.error("Error updating header Islamic date:", error);
                 displayElement.textContent = 'اسلامی تاریخ لوڈ نہیں ہو سکی۔';
             }
         }
-
         async function calculateHijriAge(event) {
             event.preventDefault();
             const birthDateGregorian = document.getElementById('birth-date-gregorian').value;
             const resultArea = document.getElementById('hijri-age-result');
-
             if (!birthDateGregorian) {
                 showToast('براہ کرم تاریخ پیدائش درج کریں۔', 'error');
                 return;
             }
-
             try {
                 resultArea.innerHTML = `<p class="placeholder-text">حساب لگایا جا رہا ہے...</p>`;
                 resultArea.style.display = 'block';
-
                 const [birthDateHijri, currentDateHijri] = await Promise.all([
                     getIslamicDateFromGregorian(birthDateGregorian),
                     getIslamicDateFromGregorian(new Date().toISOString().slice(0, 10))
                 ]);
-
                 if (!birthDateHijri || !currentDateHijri) {
                     showToast('ہجری تاریخ حاصل کرنے میں ناکامی۔ براہ کرم دوبارہ کوشش کریں۔', 'error');
                     resultArea.style.display = 'none';
                     return;
                 }
-
                 const [birthDay, birthMonth, birthYear] = birthDateHijri.split('-').map(Number);
                 const [currentDay, currentMonth, currentYear] = currentDateHijri.split('-').map(Number);
-
                 let age = currentYear - birthYear;
                 if (currentMonth < birthMonth || (currentMonth === birthMonth && currentDay < birthDay)) {
                     age--;
                 }
-
                 const hijriMonths = ["محرم", "صفر", "ربیع الاول", "ربیع الثانی", "جمادی الاولی", "جمادی الآخر", "رجب", "شعبان", "رمضان", "شوال", "ذوالقعدة", "ذوالحجة"];
                 const formattedBirthDateHijri = `${birthDay} ${hijriMonths[birthMonth - 1]} ${birthYear}ھ`;
-
                 resultArea.innerHTML = `
                     <h3>نتیجہ</h3>
                     <ul>
@@ -2783,7 +2680,6 @@
                     </ul>
                 `;
                 resultArea.style.display = 'block';
-
             } catch (error) {
                 console.error("Hijri age calculation error:", error);
                 showToast('عمر کا حساب لگانے میں خرابی۔', 'error');
