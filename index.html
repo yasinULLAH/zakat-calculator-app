@@ -1283,12 +1283,13 @@
                 <h2>عشر کیلکولیٹر (زرعی پیداوار پر زکوٰۃ)</h2>
                 <div class="info-area">
                     <i class="bi bi-info-circle"></i> عشر اس زرعی پیداوار پر واجب ہوتا ہے جو زمین سے حاصل ہوتی ہے۔ اس کا
-                    نصاب 5 وسق (تقریباً 653 کلوگرام) ہے۔
+                    نصاب 5 وسق (تقریباً 653 کلوگرام) ہے۔ (1 من = 40 کلوگرام)
                 </div>
                 <form id="ushr-form" class="form-grid single-col" style="margin-top: 1.5rem;">
                     <div class="form-group">
                         <label for="produce-amount"><i class="bi bi-basket-fill"></i> کل پیداوار (کلوگرام میں):</label>
                         <input type="number" id="produce-amount" step="any" required>
+                        <span id="produce-amount-mann-display" class="real-time-value"></span>
                     </div>
                     <div class="form-group">
                         <label for="price-per-kg"><i class="bi bi-tag-fill"></i> فی کلو قیمت:</label>
@@ -1995,6 +1996,7 @@
             const handler = {
                 dashboard: renderDashboard,
                 charities: renderCharities,
+                ushr: updateUshrMannDisplay,
                 history: renderCalculationHistory,
                 payments: async () => {
                     await populatePaymentYearSelect();
@@ -2018,6 +2020,19 @@
             }[tabId];
             if (handler) handler()
         }
+        function updateUshrMannDisplay() {
+            const kgInput = document.getElementById('produce-amount');
+            const mannDisplay = document.getElementById('produce-amount-mann-display');
+            const kg = parseFloat(kgInput.value) || 0;
+            if (kg > 0) {
+                const mann = kg / 40;
+                mannDisplay.textContent = `≈ ${mann.toLocaleString('en-US', { maximumFractionDigits: 2 })} من`;
+            } else {
+                mannDisplay.textContent = '';
+            }
+        }
+
+        document.getElementById('produce-amount').addEventListener('input', updateUshrMannDisplay);
         function updateFkForm() {
             const type = document.getElementById('fk-type').value;
             const quantityLabel = document.getElementById('fk-quantity-label');
@@ -3247,6 +3262,16 @@
                     showToast("برائے مہربانی پیداوار اور قیمت کی درست مقدار درج کریں۔", "error");
                     return;
                 }
+                document.getElementById('produce-amount').addEventListener('input', () => {
+                    const kg = parseFloat(document.getElementById('produce-amount').value) || 0;
+                    const mannDisplay = document.getElementById('produce-amount-mann-display');
+                    if (kg > 0) {
+                        const mann = kg / 40;
+                        mannDisplay.textContent = `≈ ${mann.toLocaleString('en-US', { maximumFractionDigits: 2 })} من`;
+                    } else {
+                        mannDisplay.textContent = '';
+                    }
+                });
                 const nisabKg = 653;
                 let resultHTML = '';
                 if (produceAmount < nisabKg) {
@@ -3254,6 +3279,8 @@
                 } else {
                     const totalValue = produceAmount * pricePerKg;
                     const ushrAmount = totalValue * irrigationType;
+                    const ushrInKg = produceAmount * irrigationType;
+                    const ushrInMann = ushrInKg / 40;
                     const ushrRatePercent = irrigationType * 100;
                     resultHTML = `
             <h3>نتیجہ</h3>
@@ -3261,7 +3288,11 @@
                 <li>پیداوار کی کل مالیت: <strong>${formatCurrency(totalValue)}</strong></li>
                 <li>لاگو شرح: <strong>${ushrRatePercent}%</strong></li>
             </ul>
-            <h4 style="margin-top:1rem">واجب الادا عشر: <strong>${formatCurrency(ushrAmount)}</strong></h4>
+            <h4 style="margin-top:1rem">واجب الادا عشر</h4>
+            <ul>
+                <li>مالیت میں: <strong>${formatCurrency(ushrAmount)}</strong></li>
+                <li>پیداوار میں: <strong>${ushrInKg.toLocaleString('en-US', { maximumFractionDigits: 2 })} کلوگرام</strong> (تقریباً ${ushrInMann.toLocaleString('en-US', { maximumFractionDigits: 2 })} من)</li>
+            </ul>
         `;
                 }
                 resultArea.innerHTML = resultHTML;

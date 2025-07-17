@@ -2,7 +2,7 @@
 
 // 1. CHANGE THIS: Increment the version number every time you update the app.
 // This is the trigger for the service worker update process.
-const CACHE_NAME = 'zakat-manager-v4'; 
+const CACHE_NAME = 'zakat-manager-v5'; 
 
 const urlsToCache = [
   './',
