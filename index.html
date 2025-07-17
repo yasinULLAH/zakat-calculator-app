@@ -3147,52 +3147,72 @@
         }
         async function checkAndShowNotification() {
             if (!('Notification' in window) || Notification.permission !== "granted" || !appState.settings.zakatAnniversaryIslamic) return;
+
+            const notificationStateJSON = localStorage.getItem('zakatNotificationState');
+            let lastNotifiedState = null;
+            try {
+                if (notificationStateJSON) {
+                    lastNotifiedState = JSON.parse(notificationStateJSON);
+                }
+            } catch (e) {
+                console.error("Could not parse notification state.", e);
+            }
+
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const todayGregorianString = today.toISOString().slice(0, 10);
-            const lastNotificationDate = localStorage.getItem('lastNotificationDate');
-            if (lastNotificationDate === todayGregorianString) {
-                console.log("DEBUG: Notification already sent today.");
-                return;
-            }
+
             const anniversaryIslamic = appState.settings.zakatAnniversaryIslamic;
-            const [annivDay, annivMonth, annivYear] = anniversaryIslamic.split('-').map(Number);
+            const [annivDay, annivMonth] = anniversaryIslamic.split('-').map(Number);
             const currentIslamicDate = await getIslamicDateFromGregorian(todayGregorianString);
+
             if (!currentIslamicDate) {
                 console.warn("DEBUG: Could not get current Islamic date for notification check.");
                 return;
             }
+
             const [currentDay, currentMonth, currentYear] = currentIslamicDate.split('-').map(Number);
             let targetIslamicYear = currentYear;
             if (currentMonth > annivMonth || (currentMonth === annivMonth && currentDay > annivDay)) {
                 targetIslamicYear++;
             }
+
             const nextAnniversaryIslamicDate = `${annivDay}-${annivMonth}-${targetIslamicYear}`;
             const nextAnniversaryGregorianString = await getGregorianDateFromIslamic(nextAnniversaryIslamicDate);
+
             if (!nextAnniversaryGregorianString) {
                 console.warn("DEBUG: Could not get next Gregorian anniversary date for notification check.");
                 return;
             }
+
             const nextAnniversaryGregorian = new Date(nextAnniversaryGregorianString);
             nextAnniversaryGregorian.setHours(0, 0, 0, 0);
             const timeDiff = nextAnniversaryGregorian.getTime() - today.getTime();
             const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-            console.log(`DEBUG: Days remaining for notification check: ${daysRemaining}`);
+
             if (daysRemaining >= 0 && daysRemaining <= 20) {
-                const reg = await navigator.serviceWorker.ready;
-                let notificationBody = `آپ کی زکوٰۃ کی اسلامی سالگرہ ${anniversaryIslamic} کو ہے۔`;
-                if (daysRemaining === 0) {
-                    notificationBody = `آج آپ کی زکوٰۃ کی اسلامی سالگرہ ہے! اپنا حساب لگانا نہ بھولیں۔`;
+                const shouldNotify = !lastNotifiedState || lastNotifiedState.year !== targetIslamicYear || lastNotifiedState.days !== daysRemaining;
+
+                if (shouldNotify) {
+                    console.log(`DEBUG: Sending notification for ${daysRemaining} days remaining.`);
+                    let notificationBody = `آپ کی زکوٰۃ کی اسلامی سالگرہ ${anniversaryIslamic} کو ہے۔`;
+                    if (daysRemaining === 0) {
+                        notificationBody = `آج آپ کی زکوٰۃ کی اسلامی سالگرہ ہے! اپنا حساب لگانا نہ بھولیں۔`;
+                    } else {
+                        notificationBody += ` (${daysRemaining} دن باقی ہیں)`;
+                    }
+
+                    const reg = await navigator.serviceWorker.ready;
+                    reg.showNotification('زکوٰۃ کی یاد دہانی', {
+                        body: notificationBody,
+                        icon: 'icons/icon-192x192.png',
+                        tag: 'zakat-reminder'
+                    });
+
+                    localStorage.setItem('zakatNotificationState', JSON.stringify({ year: targetIslamicYear, days: daysRemaining }));
                 } else {
-                    notificationBody += ` (${daysRemaining} دن باقی ہیں)`;
+                    console.log(`DEBUG: Notification already sent for ${daysRemaining} days remaining.`);
                 }
-                reg.showNotification('زکوٰۃ کی یاد دہانی', {
-                    body: notificationBody,
-                    icon: 'icons/icon-192x192.png',
-                    tag: 'zakat-reminder'
-                });
-                localStorage.setItem('lastNotificationDate', todayGregorianString);
-                console.log("DEBUG: Notification sent successfully.");
             }
         }
         async function autofillPaymentAmount() {
