@@ -1720,5 +1720,12 @@
     "silver": 8021,
     "unit": "PKR per Tola",
     "timestamp": "20/03/2026, 6:24:09 am"
+  },
+  {
+    "date": "2026-03-21",
+    "gold": 478903,
+    "silver": 7256,
+    "unit": "PKR per Tola",
+    "timestamp": "21/03/2026, 6:19:27 am"
   }
 ]
